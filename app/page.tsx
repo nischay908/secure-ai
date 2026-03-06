@@ -1,12 +1,12 @@
 'use client'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 const TYPING = [
   "🔍 Scanning Flask app for vulnerabilities...",
   "🧠 Reasoning: f-string in SQL = injection vector",
   "🚨 CRITICAL: SQL Injection at line 12",
-  "🚨 HIGH: Hardcoded secret at line 18",  
+  "🚨 HIGH: Hardcoded secret at line 18",
   "🔧 Generating parameterized query fix...",
   "✅ Security score: 23 → 94 | Scan complete 🎉",
 ]
@@ -64,6 +64,13 @@ export default function Home() {
           top: 50%; left: 50%;
           animation: float 12s ease-in-out infinite;
         }
+        .particles {
+          position: absolute; inset: 0;
+          background-image: radial-gradient(circle, rgba(0,255,136,0.12) 1px, transparent 1px);
+          background-size: 48px 48px;
+          animation: float 25s ease infinite;
+          opacity: 0.25;
+        }
         .grid-bg {
           position: fixed; inset: 0; pointer-events: none; z-index: 0;
           background-image:
@@ -75,13 +82,14 @@ export default function Home() {
           position: fixed; top: 0; left: 0; right: 0; z-index: 100;
           display: flex; justify-content: space-between; align-items: center;
           padding: 18px 48px;
-          background: rgba(5,5,8,0.8);
+          background: rgba(5,5,8,0.85);
           backdrop-filter: blur(20px);
           border-bottom: 1px solid rgba(255,255,255,0.05);
         }
         .nav-logo {
           display: flex; align-items: center; gap: 10px;
-          font-size: 18px; font-weight: 700; color: white; text-decoration: none;
+          font-size: 18px; font-weight: 700; color: white;
+          text-decoration: none; cursor: pointer;
         }
         .logo-icon {
           width: 36px; height: 36px; border-radius: 10px;
@@ -101,8 +109,7 @@ export default function Home() {
         .nav-link {
           color: rgba(255,255,255,0.4); background: none; border: none;
           padding: 8px 16px; border-radius: 8px; cursor: pointer;
-          font-size: 14px; font-weight: 500;
-          transition: color 0.2s, background 0.2s;
+          font-size: 14px; font-weight: 500; transition: color 0.2s, background 0.2s;
           font-family: 'Space Grotesk', sans-serif;
         }
         .nav-link:hover { color: white; background: rgba(255,255,255,0.05); }
@@ -116,36 +123,27 @@ export default function Home() {
           display: inline-flex; align-items: center; gap: 8px;
           background: rgba(0,255,136,0.08);
           border: 1px solid rgba(0,255,136,0.2);
-          border-radius: 100px; padding: 8px 20px;
-          margin-bottom: 32px;
+          border-radius: 100px; padding: 8px 20px; margin-bottom: 32px;
           animation: fadeUp 0.6s ease forwards;
         }
         .pulse-dot {
           width: 8px; height: 8px; border-radius: 50%;
-          background: #00ff88;
-          animation: blink 1.5s ease infinite;
+          background: #00ff88; animation: blink 1.5s ease infinite;
         }
         .hero-badge span { font-size: 13px; color: #00ff88; font-weight: 600; }
         h1 {
-          font-size: clamp(48px, 8vw, 88px);
-          font-weight: 700; line-height: 1.05;
-          letter-spacing: -0.03em;
-          margin-bottom: 24px;
-          opacity: 0;
-          animation: fadeUp 0.7s ease 0.1s forwards;
+          font-size: clamp(48px, 8vw, 88px); font-weight: 700;
+          line-height: 1.05; letter-spacing: -0.03em; margin-bottom: 24px;
+          opacity: 0; animation: fadeUp 0.7s ease 0.1s forwards;
         }
         .sub {
-          font-size: clamp(16px, 2vw, 20px);
-          color: rgba(255,255,255,0.45);
-          max-width: 580px; line-height: 1.7;
-          margin-bottom: 40px;
-          opacity: 0;
-          animation: fadeUp 0.7s ease 0.2s forwards;
+          font-size: clamp(16px, 2vw, 20px); color: rgba(255,255,255,0.45);
+          max-width: 580px; line-height: 1.7; margin-bottom: 40px;
+          opacity: 0; animation: fadeUp 0.7s ease 0.2s forwards;
         }
         .cta-row {
           display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
-          margin-bottom: 64px;
-          opacity: 0; animation: fadeUp 0.7s ease 0.3s forwards;
+          margin-bottom: 64px; opacity: 0; animation: fadeUp 0.7s ease 0.3s forwards;
         }
         .terminal-wrap {
           width: 100%; max-width: 640px;
@@ -160,15 +158,14 @@ export default function Home() {
           opacity: 0.4; padding: 2px 0;
         }
         .term-line.active { opacity: 1; }
-        .term-line.success { color: #00ff88; }
-        .term-line.error   { color: #ff4466; }
-        .term-line.warn    { color: #ff9500; }
+        .term-line.success { color: #00ff88; opacity: 1; }
+        .term-line.error   { color: #ff4466; opacity: 1; }
+        .term-line.warn    { color: #ff9500; opacity: 1; }
         .cursor {
           display: inline-block; width: 8px; height: 14px;
           background: #00ff88; vertical-align: middle; margin-left: 2px;
           animation: blink 1s ease infinite;
         }
-        /* Stats */
         .stats-bar {
           position: relative; z-index: 10;
           border-top: 1px solid rgba(255,255,255,0.05);
@@ -183,7 +180,6 @@ export default function Home() {
           letter-spacing: -0.02em; margin-bottom: 4px;
         }
         .stat-label { font-size: 13px; color: rgba(255,255,255,0.35); }
-        /* Sections */
         section { position: relative; z-index: 10; padding: 100px 48px; }
         .section-tag {
           font-size: 11px; font-weight: 700; letter-spacing: 0.15em;
@@ -205,8 +201,7 @@ export default function Home() {
           background: rgba(255,255,255,0.025);
           border: 1px solid rgba(255,255,255,0.07);
           border-radius: 20px; padding: 32px;
-          transition: all 0.3s;
-          cursor: default;
+          transition: all 0.3s; cursor: default;
         }
         .card:hover {
           border-color: rgba(0,255,136,0.25);
@@ -216,40 +211,29 @@ export default function Home() {
         }
         .card-icon {
           width: 52px; height: 52px; border-radius: 14px;
-          background: rgba(0,255,136,0.1);
-          border: 1px solid rgba(0,255,136,0.2);
+          background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.2);
           display: flex; align-items: center; justify-content: center;
           font-size: 22px; margin-bottom: 20px;
         }
         .card-num {
-          font-size: 48px; font-weight: 700;
-          color: rgba(255,255,255,0.04); float: right;
-          line-height: 1; margin-top: -8px;
-          letter-spacing: -0.04em;
+          font-size: 48px; font-weight: 700; color: rgba(255,255,255,0.04);
+          float: right; line-height: 1; margin-top: -8px; letter-spacing: -0.04em;
         }
-        .card-title {
-          font-size: 18px; font-weight: 700; margin-bottom: 10px; color: white;
-        }
+        .card-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: white; }
         .card-desc { font-size: 14px; color: rgba(255,255,255,0.4); line-height: 1.7; }
-        /* Vuln badges */
         .vuln-grid {
           display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;
           max-width: 900px; margin: 0 auto;
         }
         .vuln-badge {
           padding: 8px 18px; border-radius: 100px; font-size: 13px;
-          font-weight: 600; cursor: default;
-          transition: transform 0.2s;
+          font-weight: 600; cursor: default; transition: transform 0.2s;
         }
         .vuln-badge:hover { transform: translateY(-2px); }
         .vuln-critical { background: rgba(255,68,102,0.1); border: 1px solid rgba(255,68,102,0.3); color: #ff4466; }
         .vuln-high     { background: rgba(255,149,0,0.1); border: 1px solid rgba(255,149,0,0.3); color: #ff9500; }
         .vuln-medium   { background: rgba(255,200,0,0.1); border: 1px solid rgba(255,200,0,0.3); color: #ffc800; }
-        /* CTA section */
-        .cta-section {
-          text-align: center; padding: 120px 48px;
-          position: relative; z-index: 10;
-        }
+        .cta-section { text-align: center; padding: 120px 48px; position: relative; z-index: 10; }
         .cta-box {
           max-width: 700px; margin: 0 auto;
           background: rgba(0,255,136,0.03);
@@ -264,7 +248,7 @@ export default function Home() {
           background: radial-gradient(circle, rgba(0,255,136,0.06) 0%, transparent 70%);
         }
         .cta-title { font-size: 42px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 16px; }
-        .cta-sub   { font-size: 17px; color: rgba(255,255,255,0.4); margin-bottom: 40px; }
+        .cta-sub { font-size: 17px; color: rgba(255,255,255,0.4); margin-bottom: 40px; }
         footer {
           position: relative; z-index: 10;
           border-top: 1px solid rgba(255,255,255,0.05);
@@ -282,21 +266,20 @@ export default function Home() {
         }
       `}</style>
 
-      {/* Backgrounds */}
       <div className="hero-bg">
         <div className="orb orb-1" />
         <div className="orb orb-2" />
         <div className="orb orb-3" />
+        <div className="particles" />
       </div>
       <div className="grid-bg" />
 
-      {/* Navbar */}
       <nav>
-        <a className="nav-logo" href="/">
+        <div className="nav-logo" onClick={() => router.push('/')}>
           <div className="logo-icon">🛡</div>
           <span>Cyber<span style={{color:'#00ff88'}}>Sentry</span></span>
           <span className="badge">AI</span>
-        </a>
+        </div>
         <div className="nav-links">
           <button className="nav-link" onClick={() => router.push('/login')}>Login</button>
           <button className="btn-green" style={{padding:'10px 22px', fontSize:'14px'}} onClick={() => router.push('/login')}>
@@ -305,33 +288,20 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero */}
       <div className="hero">
         <div className="hero-badge">
           <div className="pulse-dot" />
           <span>Agentic AI · Chain-of-Thought Reasoning · OWASP Top 10</span>
         </div>
-
-        <h1>
-          Your Code's<br />
-          <span className="text-gradient">AI Security Guard</span>
-        </h1>
-
+        <h1>Your Code's<br /><span className="text-gradient">AI Security Guard</span></h1>
         <p className="sub">
           An autonomous AI agent that thinks like a senior security engineer —
           scanning, reasoning, patching, and verifying your code in seconds.
         </p>
-
         <div className="cta-row">
-          <button className="btn-green" onClick={() => router.push('/login')}>
-            🛡 Scan My Code Free
-          </button>
-          <button className="btn-ghost" onClick={() => router.push('/scan')}>
-            👁 Live Demo
-          </button>
+          <button className="btn-green" onClick={() => router.push('/login')}>🛡 Scan My Code Free</button>
+          <button className="btn-ghost" onClick={() => router.push('/scan')}>👁 Live Demo</button>
         </div>
-
-        {/* Terminal */}
         <div className="terminal-wrap">
           <div className="terminal">
             <div className="terminal-bar">
@@ -358,13 +328,12 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="stats-bar">
         {[
           {num:'OWASP', label:'Top 10 Fully Covered'},
           {num:'3-Step', label:'Agentic Loop'},
           {num:'23→94', label:'Score Improvement'},
-          {num:'<5s', label:'Scan Speed'},
+          {num:'<5s',   label:'Scan Speed'},
         ].map((s,i) => (
           <div className="stat" key={i}>
             <div className="stat-num">{s.num}</div>
@@ -373,7 +342,6 @@ export default function Home() {
         ))}
       </div>
 
-      {/* How it Works */}
       <section style={{textAlign:'center'}}>
         <p className="section-tag">The Agent Loop</p>
         <h2 className="section-title">How CyberSentry Thinks</h2>
@@ -382,9 +350,9 @@ export default function Home() {
         </p>
         <div className="cards-grid">
           {[
-            {icon:'🔍', num:'01', title:'Analyze & Reason', desc:'Agent scans your full codebase, identifies language patterns, and builds a vulnerability map using chain-of-thought reasoning.'},
-            {icon:'⚡', num:'02', title:'Generate Patches', desc:'Agent writes production-ready secure code — parameterized queries, env variables, path validation — explaining every change.'},
-            {icon:'🔒', num:'03', title:'Verify & Score', desc:'Agent re-scans patched code to confirm all fixes work, then issues a security score showing improvement.'},
+            {icon:'🔍', num:'01', title:'Analyze & Reason',   desc:'Agent scans your full codebase, identifies language patterns, and builds a vulnerability map using chain-of-thought reasoning.'},
+            {icon:'⚡', num:'02', title:'Generate Patches',   desc:'Agent writes production-ready secure code — parameterized queries, env variables, path validation — explaining every change.'},
+            {icon:'🔒', num:'03', title:'Verify & Score',     desc:'Agent re-scans patched code to confirm all fixes work, then issues a security score showing improvement.'},
           ].map((c,i) => (
             <div className="card" key={i}>
               <span className="card-num">{c.num}</span>
@@ -396,21 +364,20 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Vulnerabilities */}
       <section style={{textAlign:'center', background:'rgba(255,255,255,0.01)', borderTop:'1px solid rgba(255,255,255,0.05)', borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
         <p className="section-tag">Detection Coverage</p>
         <h2 className="section-title">What We Find</h2>
         <div className="vuln-grid">
           {[
-            {name:'SQL Injection', sev:'critical'},
-            {name:'XSS', sev:'high'},
-            {name:'Path Traversal', sev:'high'},
-            {name:'Hardcoded Secrets', sev:'high'},
-            {name:'Command Injection', sev:'critical'},
-            {name:'CSRF', sev:'medium'},
-            {name:'Broken Auth', sev:'critical'},
-            {name:'Insecure Deserialization', sev:'high'},
-            {name:'Security Misconfiguration', sev:'medium'},
+            {name:'SQL Injection',           sev:'critical'},
+            {name:'XSS',                     sev:'high'},
+            {name:'Path Traversal',          sev:'high'},
+            {name:'Hardcoded Secrets',       sev:'high'},
+            {name:'Command Injection',       sev:'critical'},
+            {name:'CSRF',                    sev:'medium'},
+            {name:'Broken Auth',             sev:'critical'},
+            {name:'Insecure Deserialization',sev:'high'},
+            {name:'Security Misconfiguration',sev:'medium'},
             {name:'Sensitive Data Exposure', sev:'high'},
           ].map((v,i) => (
             <span key={i} className={`vuln-badge vuln-${v.sev}`}>{v.name}</span>
@@ -418,14 +385,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Tech Stack */}
       <section style={{textAlign:'center'}}>
         <p style={{fontSize:'11px', letterSpacing:'0.15em', textTransform:'uppercase', color:'rgba(255,255,255,0.2)', marginBottom:'40px'}}>
           Built With
         </p>
         <div style={{display:'flex', flexWrap:'wrap', justifyContent:'center', gap:'40px', alignItems:'center'}}>
           {['Next.js 14','Claude API','Supabase','Tailwind CSS','Vercel','TypeScript'].map((t,i) => (
-            <span key={i} style={{color:'rgba(255,255,255,0.25)', fontWeight:700, fontSize:'15px', letterSpacing:'-0.01em', cursor:'default', transition:'color 0.2s'}}
+            <span key={i}
+              style={{color:'rgba(255,255,255,0.25)', fontWeight:700, fontSize:'15px', cursor:'default', transition:'color 0.2s'}}
               onMouseEnter={e => (e.currentTarget.style.color='rgba(255,255,255,0.7)')}
               onMouseLeave={e => (e.currentTarget.style.color='rgba(255,255,255,0.25)')}
             >{t}</span>
@@ -433,7 +400,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Final CTA */}
       <div className="cta-section">
         <div className="cta-box">
           <p className="section-tag" style={{marginBottom:'20px'}}>Get Started</p>
@@ -445,7 +411,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Footer */}
       <footer>
         <span>© 2026 <span className="footer-logo">CyberSentry AI</span></span>
         <span>Built for Hackathon · Nischay Bansal</span>
