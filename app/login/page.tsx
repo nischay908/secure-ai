@@ -2,10 +2,6 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Shield } from 'lucide-react'
-import { motion } from 'framer-motion'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -18,16 +14,12 @@ export default function LoginPage() {
   const handleAuth = async () => {
     setLoading(true)
     setMessage('')
-
     if (isSignUp) {
       const { error } = await supabase.auth.signUp({ email, password })
       if (error) setMessage(error.message)
-      else router.push('/scan')
+      else { setMessage('✅ Check your email to confirm!') }
     } else {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) setMessage(error.message)
       else router.push('/scan')
     }
@@ -35,62 +27,160 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white flex items-center justify-center px-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md p-8 rounded-2xl border border-white/10 bg-white/5"
-      >
-        <div className="flex items-center gap-2 mb-8">
-          <Shield className="text-green-400" />
-          <span className="font-bold text-lg">
-            Secure<span className="text-green-400">AI</span>
-          </span>
-        </div>
+    <>
+      <style>{`
+        .login-page {
+          min-height: 100vh;
+          display: flex; align-items: center; justify-content: center;
+          padding: 24px;
+          position: relative;
+          background: #050508;
+        }
+        .login-bg-orb {
+          position: fixed; border-radius: 50%; filter: blur(100px); pointer-events: none;
+        }
+        .login-box {
+          width: 100%; max-width: 440px;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 24px;
+          padding: 48px 40px;
+          position: relative; z-index: 10;
+          box-shadow: 0 40px 120px rgba(0,0,0,0.6);
+        }
+        .login-logo {
+          display: flex; align-items: center; gap: 10px;
+          margin-bottom: 36px;
+        }
+        .login-logo-icon {
+          width: 40px; height: 40px; border-radius: 11px;
+          background: rgba(0,255,136,0.12);
+          border: 1px solid rgba(0,255,136,0.25);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 18px;
+        }
+        .login-logo span { font-size: 18px; font-weight: 700; color: white; }
+        .login-title { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+        .login-sub { font-size: 14px; color: rgba(255,255,255,0.35); margin-bottom: 32px; }
+        .form-group { margin-bottom: 16px; }
+        .form-label {
+          display: block; font-size: 13px; font-weight: 600;
+          color: rgba(255,255,255,0.5); margin-bottom: 8px;
+        }
+        .error-msg {
+          background: rgba(255,68,102,0.1); border: 1px solid rgba(255,68,102,0.25);
+          border-radius: 10px; padding: 12px 16px;
+          font-size: 13px; color: #ff6688; margin-bottom: 16px;
+        }
+        .success-msg {
+          background: rgba(0,255,136,0.08); border: 1px solid rgba(0,255,136,0.2);
+          border-radius: 10px; padding: 12px 16px;
+          font-size: 13px; color: #00ff88; margin-bottom: 16px;
+        }
+        .submit-btn {
+          width: 100%; padding: 14px;
+          background: #00ff88; color: #000;
+          border: none; border-radius: 12px;
+          font-size: 15px; font-weight: 700;
+          cursor: pointer; transition: all 0.2s;
+          font-family: 'Space Grotesk', sans-serif;
+          margin-top: 8px;
+        }
+        .submit-btn:hover { background: #00ff99; transform: translateY(-1px); }
+        .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .switch-text {
+          text-align: center; margin-top: 24px;
+          font-size: 14px; color: rgba(255,255,255,0.3);
+        }
+        .switch-btn {
+          background: none; border: none; color: #00ff88;
+          cursor: pointer; font-weight: 600; margin-left: 6px;
+          font-size: 14px; font-family: 'Space Grotesk', sans-serif;
+        }
+        .switch-btn:hover { text-decoration: underline; }
+        .divider {
+          height: 1px; background: rgba(255,255,255,0.06);
+          margin: 28px 0;
+        }
+        .back-link {
+          display: flex; align-items: center; gap: 6px;
+          position: fixed; top: 28px; left: 28px; z-index: 100;
+          color: rgba(255,255,255,0.3); font-size: 14px;
+          background: none; border: none; cursor: pointer;
+          transition: color 0.2s;
+          font-family: 'Space Grotesk', sans-serif;
+        }
+        .back-link:hover { color: white; }
+      `}</style>
 
-        <h1 className="text-2xl font-bold mb-2">
-          {isSignUp ? 'Create Account' : 'Welcome Back'}
-        </h1>
-        <p className="text-white/40 mb-8">
-          {isSignUp
-            ? 'Start scanning your code for free'
-            : 'Continue securing your code'}
-        </p>
+      <button className="back-link" onClick={() => router.push('/')}>
+        ← Back
+      </button>
 
-        <div className="space-y-4">
-          <Input
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="bg-white/10 border-white/20 text-white"
-          />
-          <Input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="bg-white/10 border-white/20 text-white"
-          />
-          {message && <p className="text-red-400 text-sm">{message}</p>}
-          <Button
-            onClick={handleAuth}
-            disabled={loading}
-            className="w-full bg-green-600 hover:bg-green-700"
-          >
-            {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Login'}
-          </Button>
-        </div>
+      {/* Background orbs */}
+      <div className="login-bg-orb" style={{
+        width:'500px', height:'500px',
+        background:'radial-gradient(circle, rgba(0,255,136,0.06) 0%, transparent 70%)',
+        top:'-100px', left:'-100px'
+      }} />
+      <div className="login-bg-orb" style={{
+        width:'400px', height:'400px',
+        background:'radial-gradient(circle, rgba(68,136,255,0.05) 0%, transparent 70%)',
+        bottom:'-50px', right:'-50px'
+      }} />
 
-        <p className="text-center text-white/40 mt-6 text-sm">
-          {isSignUp ? 'Already have an account?' : "Don't have an account?"}
-          <button
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="text-green-400 ml-2 hover:underline"
-          >
-            {isSignUp ? 'Login' : 'Sign Up'}
+      <div className="login-page">
+        <div className="login-box">
+          <div className="login-logo">
+            <div className="login-logo-icon">🛡</div>
+            <span>Cyber<span style={{color:'#00ff88'}}>Sentry</span> <span style={{fontSize:'11px', background:'rgba(0,255,136,0.15)', color:'#00ff88', padding:'2px 8px', borderRadius:'20px', border:'1px solid rgba(0,255,136,0.3)'}}>AI</span></span>
+          </div>
+
+          <div className="login-title">{isSignUp ? 'Create Account' : 'Welcome Back'}</div>
+          <div className="login-sub">{isSignUp ? 'Start scanning your code for free' : 'Continue securing your codebase'}</div>
+
+          {message && (
+            <div className={message.includes('✅') ? 'success-msg' : 'error-msg'}>
+              {message}
+            </div>
+          )}
+
+          <div className="form-group">
+            <label className="form-label">Email</label>
+            <input
+              className="input-field"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleAuth()}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Password</label>
+            <input
+              className="input-field"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleAuth()}
+            />
+          </div>
+
+          <button className="submit-btn" onClick={handleAuth} disabled={loading}>
+            {loading ? 'Loading...' : isSignUp ? 'Create Account' : 'Sign In'}
           </button>
-        </p>
-      </motion.div>
-    </div>
+
+          <div className="switch-text">
+            {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+            <button className="switch-btn" onClick={() => { setIsSignUp(!isSignUp); setMessage('') }}>
+              {isSignUp ? 'Sign In' : 'Sign Up'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
   )
 }
