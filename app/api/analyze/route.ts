@@ -1,16 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const detectLang = (code: string, fallback: string) => {
-  if (code.includes('def ') || code.includes('from flask')) return 'python'
-  if (code.includes('const ') || code.includes('function ')) return 'javascript'
-  if (code.includes('public class')) return 'java'
-  if (code.includes('<?php')) return 'php'
-  return fallback
-}
-
 export async function POST(req: NextRequest) {
-  const { code, language: rawLang } = await req.json()
-const language = detectLang(code, rawLang)
+  const { code, language } = await req.json()
 
   // Simulate AI thinking delay
   await new Promise(r => setTimeout(r, 1500))
