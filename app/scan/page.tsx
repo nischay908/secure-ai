@@ -361,8 +361,10 @@ export default function ScanPage() {
         /* INPUTS */
         .panel-label{display:flex;align-items:center;justify-content:space-between;}
         .label-text{font-size:13px;font-weight:600;color:rgba(255,255,255,0.5);}
-        .lang-sel{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:6px 12px;color:white;font-size:13px;font-family:'Space Grotesk',sans-serif;outline:none;cursor:pointer;}
-        .lang-sel:focus{border-color:rgba(0,255,136,0.3);}
+        .lang-sel{background:#0d0e1a;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:7px 32px 7px 12px;color:white;font-size:13px;font-family:'Space Grotesk',sans-serif;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2300ff88' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;min-width:120px;}
+        .lang-sel:focus{border-color:rgba(0,255,136,0.4);box-shadow:0 0 0 3px rgba(0,255,136,0.08);}
+        .lang-sel:hover{border-color:rgba(0,255,136,0.3);background-color:#12132a;}
+        .lang-sel option{background:#0d0e1a;color:white;padding:8px 12px;font-family:'Space Grotesk',sans-serif;}
         .code-editor{width:100%;height:360px;background:#07080f;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:14px;color:#a0ffc0;font-size:13px;font-family:'JetBrains Mono',monospace;resize:none;outline:none;line-height:1.7;transition:border-color 0.2s;}
         .code-editor:focus{border-color:rgba(0,255,136,0.22);}
         .scan-btn{width:100%;padding:14px;background:#00ff88;color:#000;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;transition:all 0.2s;font-family:'Space Grotesk',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;}
