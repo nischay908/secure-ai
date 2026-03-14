@@ -12,33 +12,117 @@ const TYPING = [
   "✅ Security score: 4 → 96 | All clear 🎉",
 ]
 
-/* ── SPLASH MATRIX ── */
-function MatrixRain() {
+/* ── SPLASH BG: stars + cyber grid ── */
+function SplashBG() {
   const ref = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
     const c = ref.current; if (!c) return
     const ctx = c.getContext('2d')!
     c.width = window.innerWidth; c.height = window.innerHeight
-    const cols = Math.floor(c.width / 18)
-    const drops: number[] = Array(cols).fill(1)
-    const chars = '01アイウエカキクケコセキュリティ脆弱性SECURE{}[]</>$#@'
+    const W = c.width, H = c.height
+    // Stars
+    const stars = Array.from({length:180}, () => ({
+      x: Math.random()*W, y: Math.random()*H,
+      r: Math.random()*1.4+0.2, a: Math.random(), da: (Math.random()-0.5)*0.008
+    }))
+    // Grid lines
+    const GS = 52
+    let t = 0
     const draw = () => {
-      ctx.fillStyle = 'rgba(5,5,8,0.055)'; ctx.fillRect(0,0,c.width,c.height)
-      drops.forEach((y,i) => {
-        const bright = Math.random() > 0.95
-        ctx.fillStyle = bright ? '#fff' : '#00ff88'
-        ctx.font = `${bright?'bold ':''}13px monospace`
-        ctx.globalAlpha = bright ? 0.8 : 0.22
-        ctx.fillText(chars[Math.floor(Math.random()*chars.length)], i*18, y*18)
-        ctx.globalAlpha = 1
-        if(y*18 > c.height && Math.random() > 0.975) drops[i] = 0
-        drops[i]++
+      ctx.clearRect(0,0,W,H)
+      // Deep space gradient bg
+      const bg = ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*0.8)
+      bg.addColorStop(0,'#050a14'); bg.addColorStop(0.5,'#030810'); bg.addColorStop(1,'#020508')
+      ctx.fillStyle = bg; ctx.fillRect(0,0,W,H)
+      // Grid
+      const gAlpha = 0.04 + Math.sin(t*0.02)*0.01
+      ctx.strokeStyle = `rgba(0,255,136,${gAlpha})`; ctx.lineWidth = 0.5
+      for(let x=0;x<W;x+=GS){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+      for(let y=0;y<H;y+=GS){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+      // Scanline
+      const sy = ((t*1.2)%(H+40))-20
+      const sg = ctx.createLinearGradient(0,sy-12,0,sy+12)
+      sg.addColorStop(0,'transparent');sg.addColorStop(0.5,'rgba(0,255,136,0.08)');sg.addColorStop(1,'transparent')
+      ctx.fillStyle=sg; ctx.fillRect(0,sy-12,W,24)
+      // Aurora blobs
+      const auroras=[{cx:W*0.2,cy:H*0.3,r:320,c:'0,200,255'},{cx:W*0.8,cy:H*0.7,r:280,c:'180,0,255'}]
+      auroras.forEach(o=>{
+        const p = Math.sin(t*0.015+o.r)*0.3+0.7
+        const og = ctx.createRadialGradient(o.cx,o.cy,0,o.cx,o.cy,o.r*p)
+        og.addColorStop(0,`rgba(${o.c},0.07)`);og.addColorStop(1,'rgba(0,0,0,0)')
+        ctx.fillStyle=og; ctx.fillRect(0,0,W,H)
       })
+      // Stars
+      stars.forEach(s => {
+        s.a = Math.max(0.05, Math.min(1, s.a + s.da))
+        if(s.a<=0.05||s.a>=1) s.da*=-1
+        ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2)
+        ctx.fillStyle = `rgba(255,255,255,${s.a})`; ctx.fill()
+      })
+      t++; requestAnimationFrame(draw)
     }
-    const id = setInterval(draw, 45)
-    return () => clearInterval(id)
+    const id = requestAnimationFrame(draw)
+    return () => cancelAnimationFrame(id)
   }, [])
   return <canvas ref={ref} style={{position:'absolute',inset:0,width:'100%',height:'100%'}}/>
+}
+
+/* ── STAGED SPLASH SCREEN ── */
+const FEATURES = [
+  { icon:'🔍', text:'OWASP Top 10 · Full Vulnerability Coverage' },
+  { icon:'🧠', text:'AI Chain-of-Thought · Real-time Reasoning' },
+  { icon:'⚡', text:'Auto-Patch Generation · CVSS Scoring' },
+]
+function SplashScreen({onDone}:{onDone:()=>void}) {
+  const router = useRouter()
+  const [stage, setStage] = useState(0)
+  const [fadingOut, setFadingOut] = useState(false)
+  useEffect(() => {
+    const ts = [
+      setTimeout(()=>setStage(1), 1000),
+      setTimeout(()=>setStage(2), 2000),
+      setTimeout(()=>setStage(3), 2600),
+      setTimeout(()=>setStage(4), 3200),
+      setTimeout(()=>setStage(5), 4000),
+      setTimeout(()=>setFadingOut(true), 5400),
+      setTimeout(onDone, 6200),
+    ]
+    return () => ts.forEach(clearTimeout)
+  }, [])
+  const s = (n:number) => stage >= n
+  return (
+    <div className={`splash${fadingOut?' fade':''}`}>
+      <SplashBG/>
+      <div className="sc">
+        {/* Stage 0: Logo */}
+        <div className="sring"><span className="sicon">🛡</span></div>
+        <div className="sname">Cyber<span style={{color:'#00ff88'}}>Sentry</span>
+          <span style={{fontSize:'13px',marginLeft:'10px',background:'rgba(0,255,136,0.1)',color:'#00ff88',padding:'3px 10px',borderRadius:'20px',border:'1px solid rgba(0,255,136,0.28)',fontWeight:700,verticalAlign:'middle',fontFamily:"'JetBrains Mono',monospace"}}>AI</span>
+        </div>
+        {/* Stage 1: Tagline */}
+        <div className={`stag splash-stage${s(1)?' splash-show':''}`}>Agentic Security Intelligence Platform</div>
+        {/* Stage 2-4: Features one by one */}
+        <div className="splash-features">
+          {FEATURES.map((f,i) => (
+            <div key={i} className={`splash-feat${s(i+2)?' splash-show':''}`}>
+              <span className="sfeat-icon">{f.icon}</span>
+              <span>{f.text}</span>
+            </div>
+          ))}
+        </div>
+        {/* Stage 5: CTA Buttons */}
+        <div className={`splash-ctas splash-stage${s(5)?' splash-show':''}`}>
+          <button className="splash-btn-p" onClick={()=>router.push('/login')}>🛡 Create Account</button>
+          <button className="splash-btn-o" onClick={()=>router.push('/login')}>Sign In →</button>
+        </div>
+        {/* Progress bar always visible */}
+        <div className="sbar">
+          <div className="strack"><div className="sfill" style={{animationDuration:'5.2s'}}/></div>
+          <div className="spct">{['Initializing…','Loading AI…','Ready.','Mapping threats…','All systems go.','Enter →'][Math.min(stage,5)]}</div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 /* ── HERO BG: HEX GRID + RADAR + NODES + ORBS ── */
@@ -183,18 +267,13 @@ function Reveal({children,delay=0}:{children:React.ReactNode;delay?:number}){
 export default function Home() {
   const router=useRouter()
   const [splash,setSplash]=useState(true)
-  const [splashFade,setSplashFade]=useState(false)
   const [visible,setVisible]=useState(false)
   const [lineIdx,setLineIdx]=useState(0)
   const [text,setText]=useState('')
   const [charIdx,setCharIdx]=useState(0)
   const [done,setDone]=useState<string[]>([])
 
-  useEffect(()=>{
-    const t1=setTimeout(()=>setSplashFade(true),2200)
-    const t2=setTimeout(()=>{setSplash(false);setVisible(true)},3000)
-    return()=>{clearTimeout(t1);clearTimeout(t2)}
-  },[])
+  const handleSplashDone = () => { setSplash(false); setVisible(true) }
 
   useEffect(()=>{
     if(splash)return
@@ -208,7 +287,7 @@ export default function Home() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
         *{box-sizing:border-box;margin:0;padding:0;}
-        html,body{background:#030408;color:white;font-family:'Outfit',sans-serif;overflow-x:hidden;scroll-behavior:smooth;}
+        html,body{background:#020510;color:white;font-family:'Outfit',sans-serif;overflow-x:hidden;scroll-behavior:smooth;}
         ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:#050508;}::-webkit-scrollbar-thumb{background:#1a2a1a;border-radius:3px;}
 
         @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
@@ -224,21 +303,38 @@ export default function Home() {
         @keyframes radarPing{0%{transform:scale(0.8);opacity:0.6}100%{transform:scale(2.4);opacity:0}}
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes countUp{0%{transform:scale(1.2);color:#00ff88}100%{transform:scale(1)}}
+        @keyframes splashIn{0%{opacity:0;transform:translateY(18px) scale(0.96)}100%{opacity:1;transform:translateY(0) scale(1)}}
+        @keyframes featIn{0%{opacity:0;transform:translateX(-22px)}100%{opacity:1;transform:translateX(0)}}
+        @keyframes ctaIn{0%{opacity:0;transform:translateY(16px) scale(0.95)}100%{opacity:1;transform:translateY(0) scale(1)}}
+        @keyframes haloSpin{to{transform:rotate(360deg)}}
 
         /* SPLASH */
-        .splash{position:fixed;inset:0;z-index:9999;background:#030408;display:flex;align-items:center;justify-content:center;overflow:hidden;transition:opacity 0.8s ease;}
+        .splash{position:fixed;inset:0;z-index:9999;background:#020510;display:flex;align-items:center;justify-content:center;overflow:hidden;transition:opacity 1s ease;}
         .splash.fade{opacity:0;pointer-events:none;}
-        .sc{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:20px;}
-        .sring{width:110px;height:110px;border-radius:50%;border:2px solid transparent;background:linear-gradient(#030408,#030408) padding-box,linear-gradient(135deg,#00ff88,#00ccff,#ff4466,#00ff88) border-box;display:flex;align-items:center;justify-content:center;position:relative;animation:ringPop 0.9s cubic-bezier(0.34,1.56,0.64,1) both;box-shadow:0 0 80px rgba(0,255,136,0.12);}
-        .sring::before{content:'';position:absolute;inset:-8px;border-radius:50%;border:1px solid rgba(0,255,136,0.18);animation:ringPulse 2s ease infinite;}
-        .sring::after{content:'';position:absolute;inset:-18px;border-radius:50%;border:1px solid rgba(0,255,136,0.07);animation:ringPulse 2s ease 0.5s infinite;}
-        .sicon{font-size:44px;filter:drop-shadow(0 0 22px rgba(0,255,136,0.8));}
-        .sname{font-size:30px;font-weight:900;letter-spacing:-0.03em;animation:fadeUp 0.5s ease 0.5s both;}
-        .stag{font-size:11px;color:rgba(255,255,255,0.22);letter-spacing:0.22em;text-transform:uppercase;font-weight:600;animation:fadeUp 0.5s ease 0.7s both;font-family:'JetBrains Mono',monospace;}
-        .sbar{width:180px;animation:fadeUp 0.5s ease 0.9s both;}
+        .sc{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:22px;}
+        .sring{width:116px;height:116px;border-radius:50%;border:2px solid transparent;background:linear-gradient(#020510,#020510) padding-box,linear-gradient(135deg,#00ff88,#00ccff,#a855f7,#00ff88) border-box;display:flex;align-items:center;justify-content:center;position:relative;animation:ringPop 0.9s cubic-bezier(0.34,1.56,0.64,1) both;box-shadow:0 0 80px rgba(0,255,136,0.18),0 0 160px rgba(0,200,255,0.08);}
+        .sring::before{content:'';position:absolute;inset:-10px;border-radius:50%;border:1px solid rgba(0,255,136,0.2);animation:ringPulse 2s ease infinite;}
+        .sring::after{content:'';position:absolute;inset:-22px;border-radius:50%;border:1px solid rgba(168,85,247,0.12);animation:ringPulse 2.4s ease 0.6s infinite;}
+        .sicon{font-size:46px;filter:drop-shadow(0 0 28px rgba(0,255,136,0.9));}
+        .sname{font-size:32px;font-weight:900;letter-spacing:-0.03em;animation:fadeUp 0.55s ease 0.5s both;text-shadow:0 0 40px rgba(0,255,136,0.18);}
+        /* Splash staged elements */
+        .splash-stage{opacity:0;pointer-events:none;}
+        .splash-stage.splash-show{animation:splashIn 0.6s cubic-bezier(0.34,1.3,0.64,1) forwards;}
+        .stag{font-size:11px;color:rgba(255,255,255,0.28);letter-spacing:0.24em;text-transform:uppercase;font-weight:600;font-family:'JetBrains Mono',monospace;}
+        .splash-features{display:flex;flex-direction:column;gap:10px;width:100%;max-width:340px;}
+        .splash-feat{display:flex;align-items:center;gap:12px;background:rgba(0,255,136,0.04);border:1px solid rgba(0,255,136,0.12);border-radius:12px;padding:10px 16px;font-size:13px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.65);opacity:0;}
+        .splash-feat.splash-show{animation:featIn 0.55s cubic-bezier(0.34,1.3,0.64,1) forwards;}
+        .sfeat-icon{font-size:18px;flex-shrink:0;}
+        .splash-ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;opacity:0;}
+        .splash-ctas.splash-show{animation:ctaIn 0.7s cubic-bezier(0.34,1.4,0.64,1) forwards;}
+        .splash-btn-p{background:linear-gradient(135deg,#00ff88,#00ccaa);color:#000;border:none;padding:13px 30px;border-radius:12px;font-weight:900;font-size:15px;cursor:pointer;font-family:'Outfit',sans-serif;box-shadow:0 4px 32px rgba(0,255,136,0.38);transition:transform 0.2s,box-shadow 0.2s;}
+        .splash-btn-p:hover{transform:translateY(-3px);box-shadow:0 10px 44px rgba(0,255,136,0.55);}
+        .splash-btn-o{background:rgba(255,255,255,0.04);color:white;border:1px solid rgba(255,255,255,0.14);padding:13px 26px;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.2s;}
+        .splash-btn-o:hover{border-color:rgba(0,255,136,0.4);background:rgba(0,255,136,0.06);transform:translateY(-3px);}
+        .sbar{width:200px;animation:fadeUp 0.5s ease 0.3s both;}
         .strack{height:2px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;}
-        .sfill{height:100%;background:linear-gradient(90deg,#00ff88,#00ccff);border-radius:2px;animation:loadBar 2s cubic-bezier(0.4,0,0.2,1) forwards;box-shadow:0 0 10px rgba(0,255,136,0.6);}
-        .spct{text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px;color:#00ff88;margin-top:5px;}
+        .sfill{height:100%;background:linear-gradient(90deg,#00ff88,#00ccff,#a855f7);border-radius:2px;animation:loadBar 5.2s cubic-bezier(0.4,0,0.2,1) forwards;box-shadow:0 0 12px rgba(0,255,136,0.7);}
+        .spct{text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px;color:#00ff88;margin-top:6px;transition:all 0.3s;}
 
         .page{opacity:0;transition:opacity 1s ease;}
         .page.show{opacity:1;}
@@ -332,23 +428,8 @@ export default function Home() {
         @media(max-width:768px){nav{padding:14px 20px;}.section{padding:60px 20px;}.stats{grid-template-columns:repeat(2,1fr);padding:32px 20px;}.cta-box{padding:44px 24px;}footer{flex-direction:column;gap:8px;text-align:center;}}
       `}</style>
 
-      {/* SPLASH */}
-      {splash&&(
-        <div className={`splash${splashFade?' fade':''}`}>
-          <MatrixRain/>
-          <div className="sc">
-            <div className="sring"><span className="sicon">🛡</span></div>
-            <div className="sname">Cyber<span style={{color:'#00ff88'}}>Sentry</span>
-              <span style={{fontSize:'13px',marginLeft:'10px',background:'rgba(0,255,136,0.1)',color:'#00ff88',padding:'3px 10px',borderRadius:'20px',border:'1px solid rgba(0,255,136,0.28)',fontWeight:700,verticalAlign:'middle',fontFamily:"'JetBrains Mono',monospace"}}>AI</span>
-            </div>
-            <div className="stag">Agentic Security · OWASP Top 10</div>
-            <div className="sbar">
-              <div className="strack"><div className="sfill"/></div>
-              <div className="spct">Loading...</div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* STAGED SPLASH */}
+      {splash&&<SplashScreen onDone={handleSplashDone}/>}
 
       {/* ANIMATED BG */}
       {!splash&&<HeroBG/>}
