@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { Code, Globe, Shield, Home, User, AlertTriangle, Bug, Sparkles, CheckCircle, ChevronDown, Download, RotateCcw, LogOut, Settings, Copy, FileCode2 } from 'lucide-react'
+import { Code, Globe, Shield, Home, AlertTriangle, Bug, Sparkles, CheckCircle, ChevronDown, Download, RotateCcw, LogOut, Settings, Copy, FileCode2, Terminal, Zap, Eye } from 'lucide-react'
 
 /* ─────────────────────────────────────────────────
    MOCK DATA & VULN LOGIC
@@ -113,113 +113,82 @@ public class UserAuth {
 package main
 
 import (
-	"database/sql"
-	"fmt"
-	"net/http"
+\t"database/sql"
+\t"fmt"
+\t"net/http"
 )
 
 func getUserHandler(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		id := r.URL.Query().Get("id")
-		// VULNERABLE: Sprintf concat
-		query := fmt.Sprintf("SELECT name, email FROM users WHERE id = %s", id)
-		
-		var name, email string
-		err := db.QueryRow(query).Scan(&name, &email)
-		if err != nil {
-			http.Error(w, "User not found", 404)
-			return
-		}
-		fmt.Fprintf(w, "User: %s", name)
-	}
+\treturn func(w http.ResponseWriter, r *http.Request) {
+\t\tid := r.URL.Query().Get("id")
+\t\t// VULNERABLE: Sprintf concat
+\t\tquery := fmt.Sprintf("SELECT name, email FROM users WHERE id = %s", id)
+\t\t
+\t\tvar name, email string
+\t\terr := db.QueryRow(query).Scan(&name, &email)
+\t\tif err != nil {
+\t\t\thttp.Error(w, "User not found", 404)
+\t\t\treturn
+\t\t}
+\t\tfmt.Fprintf(w, "User: %s", name)
+\t}
 }`,
     fixed: `package main
 
 import (
-	"database/sql"
-	"fmt"
-	"net/http"
+\t"database/sql"
+\t"fmt"
+\t"net/http"
 )
 
 func getUserHandler(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		id := r.URL.Query().Get("id")
-		// FIXED: Use parameterized query (?) in place of args
-		query := "SELECT name, email FROM users WHERE id = ?"
-		
-		var name, email string
-		err := db.QueryRow(query, id).Scan(&name, &email)
-		if err != nil {
-			http.Error(w, "User not found", 404)
-			return
-		}
-		fmt.Fprintf(w, "User: %s", name)
-	}
+\treturn func(w http.ResponseWriter, r *http.Request) {
+\t\tid := r.URL.Query().Get("id")
+\t\t// FIXED: Use parameterized query (?) in place of args
+\t\tquery := "SELECT name, email FROM users WHERE id = ?"
+\t\t
+\t\tvar name, email string
+\t\terr := db.QueryRow(query, id).Scan(&name, &email)
+\t\tif err != nil {
+\t\t\thttp.Error(w, "User not found", 404)
+\t\t\treturn
+\t\t}
+\t\tfmt.Fprintf(w, "User: %s", name)
+\t}
 }`
   }
 }
 
-
-function analyzeCode(inputStr: string, mode: 'code' | 'url', lang: string): {vulns:any[];score:number;thinking:string[]} {
+function analyzeCode(inputStr: string, mode: 'code' | 'url', lang: string): { vulns: any[]; score: number; thinking: string[] } {
   const thinking: string[] = []
   const vulns: any[] = []
 
   if (mode === 'url') {
     thinking.push('Initializing network scanner against target URL...', 'Simulating HTTP reconnaissance...', 'Checking default port configurations...')
     if (inputStr.trim().length > 0) {
-      vulns.push({
-        name: 'Missing Security Headers',
-        severity: 'high',
-        description: 'The target web server is missing crucial security headers like Strict-Transport-Security and X-Frame-Options.',
-        fix: 'Configure your web server (Nginx/Apache) or application framework to append these headers on all responses.',
-        line: 0
-      })
-      vulns.push({
-        name: 'Unencrypted Sub-Resource Calls',
-        severity: 'critical',
-        description: 'Network sniffer detected assets being loaded over HTTP paths, leaving them open to man-in-the-middle attacks.',
-        fix: 'Enforce HTTPS for all resource fetching by rewriting URLs to HTTPS or using a Content Security Policy (upgrade-insecure-requests).',
-        line: 0
-      })
+      vulns.push({ name: 'Missing Security Headers', severity: 'high', description: 'The target web server is missing crucial security headers like Strict-Transport-Security and X-Frame-Options.', fix: 'Configure your web server (Nginx/Apache) or application framework to append these headers on all responses.', line: 0 })
+      vulns.push({ name: 'Unencrypted Sub-Resource Calls', severity: 'critical', description: 'Network sniffer detected assets being loaded over HTTP paths, leaving them open to man-in-the-middle attacks.', fix: 'Enforce HTTPS for all resource fetching by rewriting URLs to HTTPS or using a Content Security Policy (upgrade-insecure-requests).', line: 0 })
     }
   } else {
     thinking.push(`Parsing ${lang} syntax tree...`, 'Loading language-specific OWASP rule sets...', 'Checking for dangerous operators...')
-    
-    // Check for SQLi patterns based on language select
     const code = inputStr.toLowerCase()
-    
     if (code.includes('select ') && code.includes('where ')) {
-      const isVuln = code.includes('+"') || code.includes('+"') || code.includes('+') || code.includes('f"') || code.includes('sprintf') || code.includes('format') || code.includes('%s')
-      
+      const isVuln = code.includes('+"') || code.includes('+') || code.includes('f"') || code.includes('sprintf') || code.includes('format') || code.includes('%s')
       if (isVuln) {
-        vulns.push({
-          name: 'SQL Injection (SQLi)',
-          severity: 'critical',
-          description: 'Untrusted input is unsafely concatenated directly into a database query. Attackers can modify the query logic to bypass authentication or steal data.',
-          fix: 'Refactor to use Parameterized Queries or Prepared Statements provided by your database driver.',
-          line: 7
-        })
+        vulns.push({ name: 'SQL Injection (SQLi)', severity: 'critical', description: 'Untrusted input is unsafely concatenated directly into a database query. Attackers can modify the query logic to bypass authentication or steal data.', fix: 'Refactor to use Parameterized Queries or Prepared Statements provided by your database driver.', line: 7 })
       }
     }
-    
-    // Add generic ones if no SQLi found to demo UI
     if (vulns.length === 0 && inputStr.length > 20) {
-      vulns.push({
-        name: 'Hardcoded Secrets Detection',
-        severity: 'high',
-        description: 'Potential API token or password found written in plaintext in the repository.',
-        fix: 'Extract secrets to environment variables (.env files) and load them into application memory at runtime.',
-        line: 14
-      })
+      vulns.push({ name: 'Hardcoded Secrets Detection', severity: 'high', description: 'Potential API token or password found written in plaintext in the repository.', fix: 'Extract secrets to environment variables (.env files) and load them into application memory at runtime.', line: 14 })
     }
   }
 
   const score = vulns.length === 0 ? 98 : Math.max(12, 100 - (vulns.length * 30))
-  return {vulns, score, thinking}
+  return { vulns, score, thinking }
 }
 
 /* ─────────────────────────────────────────────────
-   ANIMATED COUNTER COMPONENT
+   ANIMATED COUNTER
 ───────────────────────────────────────────────── */
 function AnimatedCounter({ target }: { target: number }) {
   const [val, setVal] = useState(0)
@@ -235,58 +204,73 @@ function AnimatedCounter({ target }: { target: number }) {
 
   useEffect(() => {
     if (!visible) return
-    let start = 0
-    const duration = 1500
-    const step = 16
-    const steps = duration / step
-    const inc = target / steps
     let cur = 0
+    const inc = target / (1500 / 16)
     const timer = setInterval(() => {
       cur += inc
       if (cur >= target) { setVal(target); clearInterval(timer) }
       else setVal(Math.floor(cur))
-    }, step)
+    }, 16)
     return () => clearInterval(timer)
   }, [visible, target])
 
-  return <div ref={ref} className="text-4xl font-extrabold font-outfit tracking-tight">{val}</div>
+  return <div ref={ref} className="counter-num">{val}</div>
 }
 
 /* ─────────────────────────────────────────────────
-   DIFF VIEWER
+   DIFF VIEWER — improved with copy button
 ───────────────────────────────────────────────── */
-function DiffViewer({original,patched}:{original:string;patched:string}) {
+function DiffViewer({ original, patched }: { original: string; patched: string }) {
+  const [copied, setCopied] = useState(false)
   const oLines = original.split('\n'), pLines = patched.split('\n')
+
+  const copyFixed = () => {
+    navigator.clipboard.writeText(patched)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   return (
-    <div className="grid grid-cols-2 gap-[1px] bg-white/5 rounded-xl border border-white/5 overflow-hidden">
-      <div>
-        <div className="px-4 py-2 bg-red-500/10 border-b border-red-500/20 text-xs font-bold text-red-400 font-mono flex items-center gap-2">
-          <span>—</span> Vulnerable Code
+    <div className="diff-wrap">
+      {/* Header row */}
+      <div className="diff-headers">
+        <div className="diff-col-label diff-label-vuln">
+          <span className="diff-badge-dot red" />
+          <span>Vulnerable Code</span>
         </div>
-        <div className="p-3 bg-[#08050a] overflow-auto max-h-[400px]">
-          {oLines.map((line,i)=>{
-            const bad=!pLines.includes(line)&&line.trim()
-            return(
-              <div key={i} className={`flex gap-3 font-mono text-xs leading-relaxed ${bad?'bg-red-500/10 border-l-2 border-red-500 pl-1.5':'border-l-2 border-transparent pl-1.5'}`}>
-                <span className="text-white/20 min-w-[20px] select-none text-right">{i+1}</span>
-                <span className={bad?'text-red-300':'text-white/40'} style={{whiteSpace:'pre'}}>{line||' '}</span>
-              </div>
-          )})}
+        <div className="diff-col-label diff-label-fixed">
+          <span className="diff-badge-dot green" />
+          <span>Secured Code</span>
+          <button className="copy-fixed-btn" onClick={copyFixed}>
+            {copied ? <><CheckCircle size={12} /> Copied!</> : <><Copy size={12} /> Copy Fixed</>}
+          </button>
         </div>
       </div>
-      <div>
-        <div className="px-4 py-2 bg-emerald-500/10 border-b border-emerald-500/20 text-xs font-bold text-emerald-400 font-mono flex items-center gap-2">
-          <span>+</span> Secured Code
-        </div>
-        <div className="p-3 bg-[#050a08] overflow-auto max-h-[400px]">
-          {pLines.map((line,i)=>{
-            const good=!oLines.includes(line)&&line.trim()
-            return(
-              <div key={i} className={`flex gap-3 font-mono text-xs leading-relaxed ${good?'bg-emerald-500/10 border-l-2 border-emerald-500 pl-1.5':'border-l-2 border-transparent pl-1.5'}`}>
-                <span className="text-white/20 min-w-[20px] select-none text-right">{i+1}</span>
-                <span className={good?'text-emerald-400':'text-white/40'} style={{whiteSpace:'pre'}}>{line||' '}</span>
+      {/* Code grid */}
+      <div className="diff-grid">
+        {/* Left — original */}
+        <div className="diff-pane diff-pane-left">
+          {oLines.map((line, i) => {
+            const bad = !pLines.includes(line) && line.trim()
+            return (
+              <div key={i} className={`diff-line ${bad ? 'diff-line-bad' : ''}`}>
+                <span className="diff-ln">{i + 1}</span>
+                <span className="diff-code" style={{ whiteSpace: 'pre' }}>{line || ' '}</span>
               </div>
-          )})}
+            )
+          })}
+        </div>
+        {/* Right — patched */}
+        <div className="diff-pane diff-pane-right">
+          {pLines.map((line, i) => {
+            const good = !oLines.includes(line) && line.trim()
+            return (
+              <div key={i} className={`diff-line ${good ? 'diff-line-good' : ''}`}>
+                <span className="diff-ln">{i + 1}</span>
+                <span className="diff-code" style={{ whiteSpace: 'pre' }}>{line || ' '}</span>
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>
@@ -294,58 +278,39 @@ function DiffViewer({original,patched}:{original:string;patched:string}) {
 }
 
 /* ─────────────────────────────────────────────────
-   MAIN DASHBOARD COMPONENT
+   MAIN DASHBOARD
 ───────────────────────────────────────────────── */
 export default function UnifiedDashboard() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
-  
-  // Stats state
   const [stats, setStats] = useState({ total: 0, vulns: 0, crit: 0, patched: 0 })
   const [loadingStats, setLoadingStats] = useState(true)
-  
-  // Scan state
   const [language, setLanguage] = useState('JavaScript')
   const [code, setCode] = useState(CODE_SAMPLES['JavaScript'].vulnb)
   const [scanMode, setScanMode] = useState<'code' | 'url'>('code')
   const [phase, setPhase] = useState<'idle' | 'scanning' | 'alert' | 'report'>('idle')
   const [scanSteps, setScanSteps] = useState<string[]>([])
   const [vulns, setVulns] = useState<any[]>([])
-  
-  // UI Dropdowns
   const [profileOpen, setProfileOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
-  
-  // Chat state
   const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'bot'; text: string }[]>([])
   const [chatInput, setChatInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
-
-  // Report state
   const [activeTab, setActiveTab] = useState<'vulns' | 'original' | 'corrected' | 'sentry'>('sentry')
+  const chatEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [chatMessages, isTyping])
 
   useEffect(() => {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        setUser(user)
-      } else {
-        // Fallback for demo when not logged in
-        setUser({ email: 'demo@cybersentry.ai', id: 'promo-id' })
-      }
-
-      // Fetch actual stats from history
+      if (user) { setUser(user) } else { setUser({ email: 'demo@cybersentry.ai', id: 'promo-id' }) }
       const { data } = await supabase.from('scans').select('*').eq('user_id', user ? user.id : 'promo-id')
       if (data) {
-        let total = data.length
-        let vCount = 0
-        let critCount = 0
-        data.forEach(s => {
-          if(s.vulnerabilities) {
-            vCount += s.vulnerabilities.length
-            critCount += s.vulnerabilities.filter((v:any)=>v.severity==='critical'||v.severity==='high').length
-          }
-        })
+        let total = data.length, vCount = 0, critCount = 0
+        data.forEach(s => { if (s.vulnerabilities) { vCount += s.vulnerabilities.length; critCount += s.vulnerabilities.filter((v: any) => v.severity === 'critical' || v.severity === 'high').length } })
         setStats({ total, vulns: vCount, crit: critCount, patched: vCount })
       }
       setLoadingStats(false)
@@ -354,663 +319,975 @@ export default function UnifiedDashboard() {
   }, [])
 
   const startScan = async () => {
-    setPhase('scanning')
-    setScanSteps([])
-    
-    // Animate scan steps
-    const steps = scanMode === 'url' 
-      ? ['Resolving hostname', 'Reconnaissance phase', 'Scanning for security headers', 'Finalizing network report']
-      : ['Initializing scan engine', 'Analyzing syntax trees', 'Running vulnerability checks', 'Applying OWASP rulesets']
-    
-    for (const step of steps) {
-      setScanSteps(p => [...p, step])
-      await new Promise(r => setTimeout(r, 800))
-    }
-    
-    const {vulns: foundVulns} = analyzeCode(code, scanMode, language)
+    setPhase('scanning'); setScanSteps([])
+    const steps = scanMode === 'url'
+      ? ['Resolving hostname & DNS records', 'HTTP reconnaissance in progress', 'Auditing security response headers', 'Generating threat intelligence report']
+      : ['Initializing AST scan engine', 'Parsing syntax trees & call graphs', 'Running OWASP Top-10 rule checks', 'Finalizing vulnerability assessment']
+    for (const step of steps) { setScanSteps(p => [...p, step]); await new Promise(r => setTimeout(r, 800)) }
+    const { vulns: foundVulns } = analyzeCode(code, scanMode, language)
     setVulns(foundVulns)
-    
-    // Auto-generate first AI message
     if (foundVulns.length > 0) {
-      setChatMessages([
-        { role: 'bot', text: `Hello ${user?.email?.split('@')[0] || 'User'}. I've completed the security audit. I've detected ${foundVulns.length} vulnerabilities that require your attention. The most critical is the ${foundVulns[0].name}.\n\nYou can see my full briefing in the panel below, or ask me specific questions about these findings.` }
-      ])
+      setChatMessages([{ role: 'bot', text: `Hello ${user?.email?.split('@')[0] || 'User'}. I've completed the security audit. I've detected ${foundVulns.length} vulnerabilit${foundVulns.length === 1 ? 'y' : 'ies'} that require your attention. The most critical is the ${foundVulns[0].name}.\n\nYou can see my full briefing in the panel below, or ask me specific questions about these findings.` }])
     } else {
-      setChatMessages([
-        { role: 'bot', text: "Excellent news! My deep scan found no security vulnerabilities in this codebase. You're following best practices." }
-      ])
+      setChatMessages([{ role: 'bot', text: "Excellent news! My deep scan found no security vulnerabilities in this codebase. You're following best practices." }])
     }
-    
     await new Promise(r => setTimeout(r, 600))
-    
-    if (foundVulns.length > 0) {
-      setPhase('alert')
-    } else {
-      setPhase('report')
-    }
-    
-    // Save to DB
+    setPhase(foundVulns.length > 0 ? 'alert' : 'report')
     try {
-      if(user) {
-        await supabase.from('scans').insert({
-          user_id: user.id,
-          code,
-          language: scanMode === 'url' ? 'URL' : language,
-          vulnerabilities: foundVulns,
-          fixed_code: scanMode === 'code' ? CODE_SAMPLES[language]?.fixed || code : '',
-          security_score: foundVulns.length === 0 ? 100 : Math.max(12, 100 - (foundVulns.length * 30)),
-          status: 'completed'
-        })
+      if (user) {
+        await supabase.from('scans').insert({ user_id: user.id, code, language: scanMode === 'url' ? 'URL' : language, vulnerabilities: foundVulns, fixed_code: scanMode === 'code' ? CODE_SAMPLES[language]?.fixed || code : '', security_score: foundVulns.length === 0 ? 100 : Math.max(12, 100 - (foundVulns.length * 30)), status: 'completed' })
       }
-    } catch(e) {}
+    } catch (e) { }
   }
 
-  const handleLanguageChange = (lang: string) => {
-    setLanguage(lang)
-    if (CODE_SAMPLES[lang]) {
-      setCode(CODE_SAMPLES[lang].vulnb)
-    }
-  }
+  const handleLanguageChange = (lang: string) => { setLanguage(lang); if (CODE_SAMPLES[lang]) setCode(CODE_SAMPLES[lang].vulnb) }
 
   const sendAIQuery = async () => {
     if (!chatInput.trim() || isTyping) return
     const userMsg = chatInput.trim()
     setChatMessages(prev => [...prev, { role: 'user', text: userMsg }])
-    setChatInput('')
-    setIsTyping(true)
-    
-    // Simulate AI thinking and response
+    setChatInput(''); setIsTyping(true)
     await new Promise(r => setTimeout(r, 1200))
-    
-    let response = "I'm analyzing that specific context for you. Based on the scan, I recommend focusing on the parameterized query implementation first."
     const lowMsg = userMsg.toLowerCase()
-    
-    if (lowMsg.includes('sql') || lowMsg.includes('injection')) {
-      response = "SQL Injection is a critical risk where untrusted input manipulates your database queries. The fix I've generated uses 'Prepared Statements' which separate the query logic from the data, making it impossible for an attacker to break out of the string literal."
-    } else if (lowMsg.includes('fix') || lowMsg.includes('how') || lowMsg.includes('apply')) {
-      response = "To apply the fix, navigate to the 'Corrected Code' tab. You'll see I've refactored the data access logic using secure patterns. You can copy that directly into your source file."
-    } else if (lowMsg.includes('url') || lowMsg.includes('header') || lowMsg.includes('network')) {
-      response = "For the network vulnerabilities, you should ensure your web server (like Nginx or Apache) is configured to send HSTS and X-Frame-Options headers. This prevents simple Man-in-the-Middle and Clickjacking attacks."
-    } else if (lowMsg.includes('who') || lowMsg.includes('you')) {
-      response = "I am Sentry AI, your agentic security assistant. I don't just find bugs; I help you understand them and fix them with production-ready code."
-    }
-    
+    let response = "I'm analyzing that specific context for you. Based on the scan, I recommend focusing on the parameterized query implementation first."
+    if (lowMsg.includes('sql') || lowMsg.includes('injection')) response = "SQL Injection is a critical risk where untrusted input manipulates your database queries. The fix I've generated uses Prepared Statements — these separate query logic from data, making it impossible for an attacker to break out of the string literal."
+    else if (lowMsg.includes('fix') || lowMsg.includes('how') || lowMsg.includes('apply')) response = "To apply the fix, navigate to the 'Corrected Code' tab. I've refactored the data access logic using secure patterns. You can copy the patched code directly into your source file."
+    else if (lowMsg.includes('url') || lowMsg.includes('header') || lowMsg.includes('network')) response = "For the network vulnerabilities, ensure your web server (Nginx or Apache) is configured to send HSTS and X-Frame-Options headers on all responses. This prevents Man-in-the-Middle and Clickjacking attacks."
+    else if (lowMsg.includes('who') || lowMsg.includes('you')) response = "I am Sentry AI, your agentic security assistant. I don't just find bugs — I help you understand them and fix them with production-ready code."
     setChatMessages(prev => [...prev, { role: 'bot', text: response }])
     setIsTyping(false)
   }
 
-  const signOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/')
-  }
-
+  const signOut = async () => { await supabase.auth.signOut(); router.push('/') }
   const username = user?.email?.split('@')[0] || 'user'
+
+  const STYLES = `
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: #0c0d11;
+      color: #e8eaf0;
+      font-family: 'Space Grotesk', sans-serif;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── LAYOUT ── */
+    .page-wrap { min-height: 100vh; background: #0c0d11; display: flex; flex-direction: column; }
+    .main-content { max-width: 1280px; width: 100%; margin: 0 auto; padding: 40px 32px; display: flex; flex-direction: column; gap: 28px; }
+
+    /* ── NAV ── */
+    .nav-bar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(12,13,17,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 0 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px;
+    }
+    .nav-left { display: flex; align-items: center; gap: 32px; }
+    .brand { display: flex; align-items: center; gap: 10px; cursor: pointer; text-decoration: none; }
+    .brand-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, #c026d3, #7c3aed);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 16px rgba(192,38,211,0.4);
+    }
+    .brand-name { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+    .nav-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.08); }
+    .nav-pill {
+      display: flex; align-items: center; gap: 7px;
+      color: #10b981; font-size: 13px; font-weight: 600;
+      background: rgba(16,185,129,0.08);
+      border: 1px solid rgba(16,185,129,0.2);
+      padding: 5px 14px; border-radius: 20px;
+    }
+    .nav-dot { width: 6px; height: 6px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981; animation: blink 2s infinite; }
+
+    /* ── USER MENU ── */
+    .user-btn {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 6px 14px 6px 6px;
+      border-radius: 40px; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .user-btn:hover { background: rgba(255,255,255,0.07); }
+    .user-avatar {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, #c026d3, #7c3aed);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: #fff; text-transform: uppercase;
+    }
+    .user-name { font-size: 14px; font-weight: 600; color: #e8eaf0; }
+    .dropdown-menu {
+      position: absolute; top: calc(100% + 10px); right: 0;
+      width: 220px;
+      background: #17181f;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      animation: fadeDown 0.15s ease;
+    }
+    .dropdown-header { padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+    .dropdown-label { font-size: 11px; color: rgba(255,255,255,0.3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+    .dropdown-email { font-size: 13px; font-weight: 600; color: #e8eaf0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dropdown-item {
+      width: 100%; padding: 11px 16px;
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px; font-weight: 500; color: #c8cad4;
+      background: none; border: none; cursor: pointer; text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background 0.15s, color 0.15s;
+    }
+    .dropdown-item:last-child { border-bottom: none; }
+    .dropdown-item:hover { background: rgba(255,255,255,0.04); color: #fff; }
+    .dropdown-item.danger { color: #f87171; }
+    .dropdown-item.danger:hover { background: rgba(248,113,113,0.08); }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative; overflow: hidden;
+      background: linear-gradient(135deg, rgba(192,38,211,0.07) 0%, rgba(124,58,237,0.03) 50%, transparent 100%);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 20px;
+      padding: 44px 48px;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; top: -80px; right: -80px;
+      width: 360px; height: 360px;
+      background: radial-gradient(circle, rgba(124,58,237,0.12) 0%, transparent 70%);
+      border-radius: 50%; pointer-events: none;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; font-weight: 600;
+      color: #10b981; letter-spacing: 0.12em; text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+    .hero-h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 44px; font-weight: 800;
+      letter-spacing: -0.03em; line-height: 1.1;
+      color: #fff; margin-bottom: 14px;
+    }
+    .hero-gradient { background: linear-gradient(90deg, #e879f9, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero-sub { font-size: 15px; color: rgba(255,255,255,0.45); font-weight: 500; line-height: 1.65; max-width: 480px; }
+
+    /* ── STAT CARDS ── */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .stat-card {
+      background: #13141a;
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 16px; padding: 22px 24px;
+      display: flex; flex-direction: column; gap: 14px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .stat-card:hover { border-color: rgba(255,255,255,0.1); transform: translateY(-2px); }
+    .stat-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .counter-num { font-family: 'Syne', sans-serif; font-size: 38px; font-weight: 800; color: #fff; letter-spacing: -0.03em; line-height: 1; }
+    .stat-label { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.38); }
+
+    /* ── SCANNER BOX ── */
+    .scanner-wrap {
+      background: #13141a;
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 20px; overflow: hidden;
+    }
+    .scanner-mode-tabs { display: flex; background: #0f1015; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .mode-tab {
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 9px;
+      padding: 18px 0; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+      color: rgba(255,255,255,0.3);
+    }
+    .mode-tab.active {
+      color: #fff;
+      background: linear-gradient(135deg, rgba(192,38,211,0.18), rgba(124,58,237,0.12));
+      border-bottom: 2px solid #c026d3;
+      box-shadow: 0 4px 20px rgba(192,38,211,0.15) inset;
+    }
+    .mode-tab:not(.active):hover { color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.02); }
+    .scanner-body { padding: 32px 36px; }
+    .form-label {
+      display: block; font-size: 12px; font-weight: 600;
+      color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+    .form-select {
+      width: 100%; background: #0c0d11; border: 1px solid rgba(255,255,255,0.07);
+      color: #e8eaf0; border-radius: 10px; padding: 12px 16px;
+      font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 500;
+      appearance: none; outline: none; cursor: pointer;
+      margin-bottom: 24px; transition: border-color 0.2s;
+    }
+    .form-select:focus { border-color: rgba(192,38,211,0.5); }
+    .code-editor {
+      width: 100%; min-height: 220px; resize: vertical;
+      background: #0c0d11;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-left: 3px solid #7c3aed;
+      border-radius: 10px; padding: 18px 20px;
+      color: rgba(255,255,255,0.82);
+      font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7;
+      outline: none; margin-bottom: 24px;
+      transition: border-color 0.2s;
+    }
+    .code-editor:focus { border-color: rgba(192,38,211,0.5); border-left-color: #c026d3; }
+    .scan-btn {
+      width: 100%; padding: 18px;
+      background: linear-gradient(135deg, #c026d3, #9333ea);
+      border: none; border-radius: 12px;
+      color: #fff; font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px; font-weight: 700; letter-spacing: 0.01em;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: all 0.2s;
+      box-shadow: 0 6px 30px rgba(192,38,211,0.3);
+    }
+    .scan-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(192,38,211,0.4); }
+    .scan-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .url-hint { font-size: 12px; color: rgba(255,255,255,0.2); margin-top: -18px; margin-bottom: 24px; line-height: 1.5; }
+
+    /* ── SCANNING PHASE ── */
+    .scanning-screen {
+      min-height: 480px; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 32px;
+      padding: 60px; text-align: center;
+      background: #13141a; border: 1px solid rgba(255,255,255,0.05); border-radius: 20px;
+    }
+    .scan-orb {
+      width: 88px; height: 88px;
+      background: linear-gradient(135deg, #1e0a2a, #160820);
+      border: 1px solid rgba(192,38,211,0.25);
+      border-radius: 24px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 60px rgba(192,38,211,0.15);
+      animation: float 3s ease-in-out infinite;
+    }
+    .scan-h { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+    .scan-sub { font-size: 14px; color: rgba(255,255,255,0.35); }
+    .scan-steps { display: flex; flex-direction: column; gap: 14px; text-align: left; min-width: 300px; }
+    .scan-step-item {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.65);
+      animation: slideIn 0.4s ease both;
+    }
+    .step-pip { width: 8px; height: 8px; background: #c026d3; border-radius: 50%; box-shadow: 0 0 10px #c026d3; flex-shrink: 0; }
+    .progress-track { width: 320px; height: 5px; background: rgba(255,255,255,0.06); border-radius: 10px; overflow: hidden; }
+    .progress-bar { height: 100%; background: linear-gradient(90deg, #7c3aed, #c026d3); border-radius: 10px; transition: width 0.35s ease; }
+
+    /* ── ALERT MODAL ── */
+    .modal-bg {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(10px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; animation: fadeIn 0.25s ease;
+    }
+    .alert-box {
+      background: #110a0e;
+      border: 1px solid rgba(239,68,68,0.22);
+      border-radius: 24px; padding: 44px;
+      max-width: 460px; width: 100%; text-align: center;
+      box-shadow: 0 0 80px rgba(239,68,68,0.1);
+      animation: popUp 0.35s cubic-bezier(0.16,1,0.3,1);
+      position: relative;
+    }
+    .alert-close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: rgba(255,255,255,0.3); cursor: pointer; font-size: 18px; transition: color 0.2s; }
+    .alert-close:hover { color: #fff; }
+    .alert-icon-wrap {
+      width: 76px; height: 76px; margin: 0 auto 24px;
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);
+      border-radius: 22px; display: flex; align-items: center; justify-content: center;
+      color: #ef4444;
+    }
+    .alert-title { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; color: #ef4444; margin-bottom: 14px; line-height: 1.2; }
+    .alert-desc { font-size: 15px; color: rgba(255,255,255,0.55); line-height: 1.6; margin-bottom: 28px; }
+    .alert-chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25);
+      color: #f87171; font-size: 13px; font-weight: 700;
+      padding: 7px 16px; border-radius: 10px; margin-bottom: 28px;
+    }
+    .alert-cta {
+      width: 100%; padding: 16px;
+      background: linear-gradient(135deg, #ef4444, #f97316);
+      border: none; border-radius: 12px;
+      color: #fff; font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+      box-shadow: 0 6px 28px rgba(239,68,68,0.28);
+      transition: all 0.2s;
+    }
+    .alert-cta:hover { transform: translateY(-2px); box-shadow: 0 10px 36px rgba(239,68,68,0.38); }
+
+    /* ── REPORT HEADER ── */
+    .report-header {
+      background: #13141a; border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 20px; padding: 32px 36px;
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 24px;
+    }
+    .report-title-row { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+    .report-h { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+    .report-meta { font-size: 13px; color: rgba(255,255,255,0.35); font-weight: 500; margin-bottom: 20px; }
+    .badge-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .sev-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 5px 14px; border-radius: 20px;
+      font-size: 12px; font-weight: 700; border: 1px solid;
+    }
+    .sev-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .btn-row { display: flex; gap: 10px; flex-shrink: 0; }
+    .btn-primary {
+      position: relative; overflow: hidden;
+      background: linear-gradient(135deg, #c026d3, #7c3aed);
+      border: none; padding: 11px 22px; border-radius: 10px;
+      color: #fff; font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 4px 20px rgba(192,38,211,0.3);
+      transition: all 0.2s;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(192,38,211,0.4); }
+    .btn-secondary {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 11px 22px; border-radius: 10px;
+      color: #c8cad4; font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; gap: 8px;
+      transition: all 0.15s;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .export-dropdown {
+      position: absolute; top: calc(100% + 8px); right: 0;
+      width: 220px;
+      background: #17181f; border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px; overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      z-index: 60; animation: fadeDown 0.15s ease;
+    }
+    .export-header { padding: 11px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.12em; background: rgba(255,255,255,0.02); }
+    .export-item {
+      width: 100%; padding: 11px 16px;
+      display: flex; align-items: center; gap: 12px;
+      font-size: 13px; font-weight: 500; color: #c8cad4;
+      background: none; border: none; cursor: pointer; text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background 0.15s;
+    }
+    .export-item:last-child { border-bottom: none; }
+    .export-item:hover { background: rgba(255,255,255,0.04); color: #fff; }
+    .export-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+    /* ── REPORT BODY TABS ── */
+    .report-body {
+      background: #13141a; border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 20px; overflow: hidden;
+    }
+    .tab-bar { display: flex; border-bottom: 1px solid rgba(255,255,255,0.06); background: #0f1015; }
+    .tab-btn {
+      padding: 17px 28px; font-size: 13px; font-weight: 600;
+      color: rgba(255,255,255,0.35); cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s; white-space: nowrap;
+    }
+    .tab-btn.active { color: #fff; border-bottom-color: #c026d3; background: rgba(192,38,211,0.05); }
+    .tab-btn:not(.active):hover { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.02); }
+    .tab-spacer { flex: 1; }
+    .sentry-tab-btn {
+      padding: 17px 28px; font-size: 13px; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; gap: 8px;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s; white-space: nowrap;
+      margin-left: auto;
+    }
+    .sentry-tab-btn.active { color: #e879f9; border-bottom-color: #e879f9; background: rgba(232,121,249,0.05); }
+    .sentry-tab-btn:not(.active) { color: rgba(255,255,255,0.35); }
+    .sentry-tab-btn:not(.active):hover { color: rgba(232,121,249,0.7); }
+
+    /* ── VULN TAB ── */
+    .vulns-panel { padding: 28px 32px; display: flex; flex-direction: column; gap: 20px; }
+    .vuln-card {
+      position: relative; overflow: hidden;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px; padding: 28px 32px;
+      transition: all 0.25s;
+    }
+    .vuln-card:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.12); transform: translateY(-1px); }
+    .vuln-stripe { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 2px 0 0 2px; }
+    .vuln-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; }
+    .vuln-badges { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .vuln-sev {
+      padding: 4px 12px; border-radius: 6px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .vuln-id { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.04); padding: 4px 10px; border-radius: 6px; }
+    .vuln-name { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+    .vuln-line-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); padding: 5px 12px; border-radius: 8px; flex-shrink: 0; }
+    .vuln-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .vuln-section { display: flex; flex-direction: column; gap: 10px; }
+    .vuln-section-label {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .label-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .vuln-desc-box {
+      background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px; padding: 18px 20px;
+      font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.72); font-weight: 400;
+    }
+    .vuln-fix-box {
+      border-radius: 12px; padding: 18px 20px;
+      font-size: 14px; line-height: 1.7; font-weight: 500;
+    }
+    .empty-vulns { padding: 80px 32px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 16px; }
+    .empty-icon { width: 72px; height: 72px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+    .empty-h { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; color: #fff; }
+    .empty-p { font-size: 14px; color: rgba(255,255,255,0.35); max-width: 340px; line-height: 1.6; }
+
+    /* ── ORIGINAL CODE TAB ── */
+    .original-panel { padding: 28px 32px; }
+    .code-viewer {
+      background: #0c0d11; border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px; overflow: hidden;
+    }
+    .code-viewer-header {
+      padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.07);
+      background: rgba(255,255,255,0.02);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .code-viewer-label { display: flex; align-items: center; gap: 8px; }
+    .code-viewer-dot { width: 7px; height: 7px; border-radius: 50%; background: #7c3aed; box-shadow: 0 0 8px #7c3aed; }
+    .code-viewer-title { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.12em; }
+    .lang-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #a78bfa; background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.2); padding: 4px 12px; border-radius: 6px; font-weight: 600; }
+    .code-viewer pre { padding: 24px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: rgba(255,255,255,0.68); line-height: 1.75; overflow-x: auto; max-height: 560px; }
+
+    /* ── DIFF (CORRECTED CODE) TAB ── */
+    .corrected-panel { padding: 28px 32px; display: flex; flex-direction: column; gap: 20px; }
+    .diff-header-row { display: flex; align-items: center; justify-content: space-between; }
+    .diff-h { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+    .diff-sub { font-size: 12px; color: rgba(255,255,255,0.3); font-family: 'JetBrains Mono', monospace; margin-top: 4px; }
+    .auto-verified { display: inline-flex; align-items: center; gap: 7px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #34d399; font-size: 12px; font-weight: 700; padding: 7px 14px; border-radius: 8px; }
+    .diff-wrap { border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; overflow: hidden; }
+    .diff-headers { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .diff-col-label { padding: 12px 18px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .diff-label-vuln { background: rgba(239,68,68,0.08); color: #f87171; border-right: 1px solid rgba(255,255,255,0.06); }
+    .diff-label-fixed { background: rgba(16,185,129,0.06); color: #34d399; justify-content: space-between; }
+    .diff-badge-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .diff-badge-dot.red { background: #ef4444; }
+    .diff-badge-dot.green { background: #10b981; }
+    .copy-fixed-btn { display: flex; align-items: center; gap: 5px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.2); color: #34d399; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+    .copy-fixed-btn:hover { background: rgba(16,185,129,0.2); }
+    .diff-grid { display: grid; grid-template-columns: 1fr 1fr; }
+    .diff-pane { overflow-x: auto; max-height: 480px; overflow-y: auto; }
+    .diff-pane-left { background: #0c0007; border-right: 1px solid rgba(255,255,255,0.05); }
+    .diff-pane-right { background: #030c06; }
+    .diff-line { display: flex; gap: 0; align-items: stretch; min-height: 22px; }
+    .diff-line-bad { background: rgba(239,68,68,0.1); border-left: 3px solid rgba(239,68,68,0.6); }
+    .diff-line-good { background: rgba(16,185,129,0.08); border-left: 3px solid rgba(16,185,129,0.5); }
+    .diff-ln { min-width: 40px; padding: 2px 10px 2px 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: rgba(255,255,255,0.15); text-align: right; user-select: none; flex-shrink: 0; border-right: 1px solid rgba(255,255,255,0.04); }
+    .diff-code { padding: 2px 14px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.75; color: rgba(255,255,255,0.5); }
+    .diff-line-bad .diff-code { color: #fca5a5; }
+    .diff-line-good .diff-code { color: #6ee7b7; }
+
+    /* ── SENTRY AI TAB ── */
+    .sentry-panel { padding: 28px 32px 0; display: flex; flex-direction: column; gap: 20px; }
+    .sentry-status-bar {
+      background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.18);
+      border-radius: 12px; padding: 14px 20px;
+      display: flex; align-items: center; gap: 12px;
+      font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.8);
+    }
+    .sentry-orb { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #c026d3, #7c3aed); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: #fff; box-shadow: 0 0 16px rgba(192,38,211,0.4); flex-shrink: 0; }
+    .chat-container {
+      background: #0c0d11; border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px; overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+    .chat-header {
+      padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.02);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .chat-header-left { display: flex; align-items: center; gap: 10px; }
+    .chat-ai-badge { font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.12em; }
+    .neural-active { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.1em; }
+    .neural-dot { width: 7px; height: 7px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981; animation: blink 1.8s infinite; }
+    .chat-messages {
+      height: 380px; overflow-y: auto;
+      padding: 24px 20px; display: flex; flex-direction: column; gap: 16px;
+      scroll-behavior: smooth;
+    }
+    .chat-messages::-webkit-scrollbar { width: 4px; }
+    .chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 10px; }
+    .chat-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 12px; color: rgba(255,255,255,0.18); text-align: center; }
+    .chat-empty-icon { opacity: 0.4; }
+    .chat-empty-text { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
+    .msg-bot {
+      align-self: flex-start; max-width: 90%;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 4px 16px 16px 16px;
+      padding: 14px 18px; font-size: 14px; line-height: 1.7;
+      color: rgba(255,255,255,0.82);
+      animation: fadeIn 0.3s ease;
+    }
+    .msg-user {
+      align-self: flex-end; max-width: 80%;
+      background: linear-gradient(135deg, #7c3aed, #5b21b6);
+      border-radius: 16px 16px 4px 16px;
+      padding: 12px 18px; font-size: 14px; line-height: 1.6;
+      color: #fff; font-weight: 500;
+      animation: fadeIn 0.2s ease;
+    }
+    .typing-indicator { display: flex; gap: 5px; align-items: center; padding: 4px 0; }
+    .typing-dot { width: 7px; height: 7px; border-radius: 50%; background: #7c3aed; animation: bounce 1.2s infinite; }
+    .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.3s; }
+    .chat-input-row {
+      padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.06);
+      background: rgba(0,0,0,0.2);
+      display: flex; gap: 10px; align-items: center;
+    }
+    .chat-input {
+      flex: 1; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px; padding: 11px 16px;
+      color: #e8eaf0; font-family: 'Space Grotesk', sans-serif; font-size: 14px;
+      outline: none; transition: border-color 0.2s;
+    }
+    .chat-input:focus { border-color: rgba(192,38,211,0.4); }
+    .chat-input::placeholder { color: rgba(255,255,255,0.22); }
+    .chat-send-btn {
+      width: 42px; height: 42px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      border: none; cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+    }
+    .chat-send-btn.active { background: linear-gradient(135deg, #c026d3, #7c3aed); color: #fff; box-shadow: 0 0 16px rgba(192,38,211,0.35); }
+    .chat-send-btn.active:hover { transform: scale(1.05); }
+    .chat-send-btn.inactive { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.2); cursor: not-allowed; }
+
+    /* ── BACK BUTTON ── */
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.35);
+      background: none; border: none; cursor: pointer;
+      transition: color 0.2s; margin-bottom: 20px; padding: 0;
+    }
+    .back-btn:hover { color: rgba(255,255,255,0.8); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    @keyframes slideIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    @keyframes fadeDown { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes popUp { 0%{opacity:0;transform:scale(0.94)} 100%{opacity:1;transform:scale(1)} }
+    @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
+  `
 
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
-        
-        html,body { background: #111216; color: white; font-family: 'Outfit', sans-serif; overflow-x: hidden; }
-        
-        /* Layout */
-        .page-container { min-height: 100vh; background: #111216; }
-        
-        /* Header */
-        .dash-header { border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; background: #14151a; position: sticky; top: 0; z-index: 50; }
-        .brand-logo { width: 32px; height: 32px; background: linear-gradient(135deg, #d946ef, #8b5cf6); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-        .brand-text { font-size: 18px; font-weight: 800; }
-        .nav-link { color: rgba(255,255,255,0.4); font-size: 14px; font-weight: 600; text-decoration: none; transition: color 0.2s; display: flex; align-items: center; gap: 8px; }
-        .nav-link:hover { color: white; }
-        .nav-link.active { color: #10b981; }
-        
-        .user-pill { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 6px 16px 6px 6px; border-radius: 24px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .user-avatar { width: 28px; height: 28px; background: linear-gradient(135deg, #d946ef, #8b5cf6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; text-transform: uppercase; }
-        
-        /* Content Gen */
-        .dash-content { max-w: 1200px; margin: 0 auto; padding: 40px 32px; display: flex; flex-direction: column; gap: 32px; }
-        
-        /* Hero */
-        .hero-box { background: linear-gradient(to right, rgba(217,70,239,0.05), rgba(139,92,246,0.01)); border: 1px solid rgba(255,255,255,0.03); border-radius: 20px; padding: 40px; position: relative; overflow: hidden; }
-        .hero-glow { position: absolute; top: -100px; right: -100px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
-        .sys-active { display: inline-flex; align-items: center; gap: 8px; color: #10b981; font-weight: 800; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px; font-family: 'JetBrains Mono', monospace; }
-        .pulse-dot { width: 6px; height: 6px; background: #10b981; border-radius: 50%; box-shadow: 0 0 10px #10b981; animation: pulse 2s infinite; }
-        .hero-title { font-size: 42px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px; }
-        .hero-name-gradient { background: linear-gradient(to right, #d946ef, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        
-        /* Stats */
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
-        .card { background: #16171d; border: 1px solid rgba(255,255,255,0.03); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 16px; position: relative; overflow: hidden; }
-        .card-icon-box { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
-        .card span { color: rgba(255,255,255,0.4); font-size: 13px; font-weight: 600; }
-        
-        /* Scanner Container */
-        .scanner-box { background: #16171d; border: 1px solid rgba(255,255,255,0.03); border-radius: 20px; overflow: hidden; }
-        .scanner-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.03); background: #191a21; }
-        .sc-tab { flex: 1; text-align: center; padding: 20px 0; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 10px; }
-        .sc-tab.active { background: linear-gradient(135deg, #d946ef, #ec4899); color: white; box-shadow: 0 4px 20px rgba(217,70,239,0.25); }
-        .sc-tab.inactive { color: rgba(255,255,255,0.3); }
-        .sc-tab.inactive:hover { color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.02); }
-        
-        .sc-body { padding: 24px 32px; }
-        .sc-label { color: rgba(255,255,255,0.4); font-size: 12px; font-weight: 600; margin-bottom: 12px; display: block; }
-        .sc-select { background: #111216; border: 1px solid rgba(255,255,255,0.05); color: white; border-radius: 10px; padding: 12px 16px; width: 100%; font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 500; appearance: none; outline: none; margin-bottom: 24px; cursor: pointer; }
-        
-        .code-area { background: #111216; border: 1px solid rgba(255,255,255,0.05); border-left: 4px solid #8b5cf6; border-radius: 10px; padding: 20px; color: rgba(255,255,255,0.8); font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; width: 100%; min-height: 240px; resize: vertical; outline: none; margin-bottom: 24px; }
-        
-        .scan-action-btn { width: 100%; padding: 20px; background: linear-gradient(135deg, #d946ef, #ec4899); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 800; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; transition: all 0.2s; box-shadow: 0 8px 32px rgba(217,70,239,0.25); }
-        .scan-action-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(217,70,239,0.35); }
-        
-        /* Scanning View */
-        .scanning-view { min-height: 500px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px; text-align: center; }
-        .scan-icon-pulse { width: 80px; height: 80px; background: linear-gradient(135deg, #2a113a, #1f0d2c); border-radius: 20px; margin-bottom: 24px; position: relative; animation: float 3s ease-in-out infinite; box-shadow: 0 0 60px rgba(217,70,239,0.1); border: 1px solid rgba(217,70,239,0.2); }
-        .scan-title { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
-        .scan-sub { color: rgba(255,255,255,0.4); margin-bottom: 40px; }
-        .scan-steps-list { display: flex; flex-direction: column; gap: 16px; text-align: left; }
-        .scan-step { display: flex; align-items: center; gap: 12px; color: rgba(255,255,255,0.6); font-size: 14px; font-weight: 500; animation: fadeUp 0.4s ease forwards; opacity: 0; transform: translateY(10px); }
-        .step-dot { width: 8px; height: 8px; background: #d946ef; border-radius: 50%; box-shadow: 0 0 10px #d946ef; }
-        .p-bar-container { width: 100%; max-width: 400px; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; margin-top: 40px; }
-        .p-bar-fill { height: 100%; background: linear-gradient(90deg, #8b5cf6, #d946ef); border-radius: 10px; transition: width 0.3s ease; }
-        
-        /* Alert Modal */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; animation: fadeIn 0.3s ease; }
-        .alert-card { background: #130a10; border: 1px solid rgba(239,68,68,0.2); border-radius: 24px; padding: 40px; max-width: 460px; text-align: center; box-shadow: 0 0 100px rgba(239,68,68,0.1); animation: popIn 0.4s cubic-bezier(0.16,1,0.3,1); position: relative; }
-        .alert-ico-wrap { width: 80px; height: 80px; background: rgba(239,68,68,0.1); border-radius: 24px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 24px; border: 1px solid rgba(239,68,68,0.2); box-shadow: inset 0 0 20px rgba(239,68,68,0.2); color: #ef4444; }
-        .alert-title { font-size: 28px; font-weight: 800; color: #ef4444; line-height: 1.2; margin-bottom: 16px; }
-        .alert-desc { color: rgba(255,255,255,0.6); font-size: 15px; margin-bottom: 32px; line-height: 1.5; }
-        .alert-pill { display: inline-block; background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 8px 16px; border-radius: 12px; font-weight: 800; font-size: 14px; margin-bottom: 32px; }
-        .alert-btn { background: linear-gradient(135deg, #ef4444, #f97316); border: none; width: 100%; padding: 18px; border-radius: 12px; color: white; font-weight: 800; font-size: 16px; cursor: pointer; transition: all 0.2s; box-shadow: 0 8px 30px rgba(239,68,68,0.3); }
-        .alert-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(239,68,68,0.4); }
-        
-        /* Report View */
-        .rep-header { background: #16171d; border: 1px solid rgba(255,255,255,0.03); border-radius: 20px; padding: 32px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; }
-        .rep-title-wrap { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
-        .rep-title { font-size: 24px; font-weight: 800; }
-        .rep-sub { color: rgba(255,255,255,0.4); font-size: 14px; font-family: 'Outfit'; }
-        .badges-row { display: flex; gap: 12px; margin-top: 24px; }
-        .rep-badge { padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; border: 1px solid; display: flex; align-items: center; gap: 8px; }
-        
-        .rep-btn-group { display: flex; gap: 12px; }
-        .rep-btn-prm { background: linear-gradient(135deg, #d946ef, #ec4899); border: none; padding: 10px 20px; border-radius: 8px; color: white; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-        .rep-btn-sec { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 8px; color: white; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.2s; }
-        .rep-btn-sec:hover { background: rgba(255,255,255,0.08); }
-        
-        .rep-body { background: #16171d; border: 1px solid rgba(255,255,255,0.03); border-radius: 20px; overflow: hidden; }
-        .rep-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.04); }
-        .rtab { padding: 20px 32px; font-weight: 700; font-size: 14px; cursor: pointer; color: rgba(255,255,255,0.4); display: flex; align-items: center; gap: 8px; transition: all 0.2s; border-bottom: 2px solid transparent; }
-        .rtab.active { color: white; border-bottom-color: #d946ef; }
-        .rtab:hover:not(.active) { color: rgba(255,255,255,0.8); }
-        
-        .sentry-panel { padding: 32px; padding-bottom: 0px; display: flex; flex-direction: column; gap: 24px; }
-        .ai-banner { background: #1f1b2d; border: 1px solid rgba(217,70,239,0.15); border-radius: 12px; padding: 16px 24px; font-size: 14px; font-weight: 700; color: white; display: flex; align-items: center; gap: 12px; }
-        
-        .intel-card { background: #111216; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; }
-        .ic-header { padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: 800; font-size: 15px; display: flex; align-items: center; gap: 10px; }
-        .ic-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; font-size: 14px; line-height: 1.6; color: rgba(255,255,255,0.7); }
-        .ic-title { font-weight: 800; color: white; font-size: 15px; margin-top: 8px; }
-        .ic-text b { color: white; }
-        .ic-code-inline { background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono'; font-size: 12px; color: #60a5fa; }
-        
-        .chat-input-area { padding: 24px; border-top: 1px solid rgba(255,255,255,0.03); margin-top: 24px; background: #16171d; }
-        .chat-bar { background: #111216; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 8px; display: flex; gap: 12px; }
-        .chat-bar input { flex: 1; background: transparent; border: none; outline: none; color: white; font-family: 'Outfit'; font-size: 15px; padding-left: 12px; }
-        .chat-send { width: 40px; height: 40px; border-radius: 8px; background: rgba(217,70,239,0.1); color: #d946ef; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: all 0.2s; }
-        .chat-send:hover { background: rgba(217,70,239,0.2); }
-        
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-        @keyframes popIn { 0%{opacity:0;transform:scale(0.95)} 100%{opacity:1;transform:scale(1)} }
-        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-        @keyframes gleam { from{left:-100%} to{left:150%} }
-        @keyframes bgShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+      <style>{STYLES}</style>
 
-        /* Futuristic Redesigns */
-        .rep-btn-prm { 
-          position: relative;
-          background: linear-gradient(135deg, #d946ef, #8b5cf6, #3b82f6); 
-          background-size: 200% 200%;
-          animation: bgShift 6s ease infinite;
-          border: none; padding: 12px 24px; border-radius: 12px; color: white; 
-          font-weight: 800; font-size: 14px; cursor: pointer; display: flex; 
-          align-items: center; gap: 10px; overflow: hidden; 
-          box-shadow: 0 0 20px rgba(217,70,239,0.3);
-          transition: all 0.3s ease;
-        }
-        .rep-btn-prm::after {
-          content: ''; position: absolute; top: -50%; left: -100%; width: 50%; height: 200%;
-          background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
-          transform: rotate(25deg); animation: gleam 4s infinite;
-        }
-        .rep-btn-prm:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(217,70,239,0.5); }
+      <div className="page-wrap">
 
-        .chat-msg-user {
-          align-self: flex-end; background: linear-gradient(135deg, #8b5cf6, #6366f1);
-          color: white; padding: 12px 20px; border-radius: 18px 18px 4px 18px;
-          max-width: 80%; animation: fadeUp 0.3s ease; font-weight: 500; font-size: 14px;
-        }
-        .chat-msg-bot {
-          align-self: flex-start; background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.9);
-          padding: 16px; border-radius: 4px 18px 18px 18px;
-          max-width: 90%; animation: fadeIn 0.4s ease; line-height: 1.6; font-size: 14px;
-        }
-        .chat-scroll { height: 400px; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth; }
-        .chat-scroll::-webkit-scrollbar { width: 4px; }
-        .chat-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-      `}</style>
-
-      <div className="page-container flex flex-col items-center">
-        
-        {/* NAV HEADER */}
-        <header className="dash-header w-full">
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push('/')}>
-              <div className="brand-logo"><Shield className="w-5 h-5 text-white" /></div>
-              <div className="brand-text">Cyber Sentry AI</div>
+        {/* ── NAVBAR ── */}
+        <nav className="nav-bar">
+          <div className="nav-left">
+            <div className="brand" onClick={() => router.push('/')}>
+              <div className="brand-icon"><Shield size={17} color="#fff" /></div>
+              <span className="brand-name">Cyber Sentry AI</span>
             </div>
-            
-            <div className="h-6 w-px bg-white/10 mx-2"></div>
-            
-            <nav className="flex items-center gap-6">
-              <span className="nav-link active cursor-pointer"><Home className="w-4 h-4" /> Dashboard</span>
-            </nav>
+            <div className="nav-divider" />
+            <div className="nav-pill">
+              <div className="nav-dot" />
+              <Home size={13} /> Dashboard
+            </div>
           </div>
-          
-          <div className="flex items-center gap-4 relative">
-            <div className="user-pill" onClick={() => setProfileOpen(!profileOpen)}>
-              <div className="user-avatar">{username[0]}</div>
-              <span className="text-sm font-semibold pr-2">{username}</span>
-              <ChevronDown className="w-4 h-4 text-white/40" />
-            </div>
 
+          <div style={{ position: 'relative' }}>
+            <div className="user-btn" onClick={() => setProfileOpen(!profileOpen)}>
+              <div className="user-avatar">{username[0]}</div>
+              <span className="user-name">{username}</span>
+              <ChevronDown size={14} color="rgba(255,255,255,0.35)" />
+            </div>
             {profileOpen && (
-              <div className="absolute top-full right-0 mt-2 w-56 bg-[#1a1c22] border border-white/5 rounded-xl shadow-2xl z-[60] overflow-hidden fade-in">
-                <div className="px-4 py-3 border-b border-white/5 bg-white/5">
-                  <div className="text-xs text-white/40 mb-1">Signed in as</div>
-                  <div className="text-sm font-bold truncate">{user?.email}</div>
+              <div className="dropdown-menu">
+                <div className="dropdown-header">
+                  <div className="dropdown-label">Signed in as</div>
+                  <div className="dropdown-email">{user?.email}</div>
                 </div>
-                <button className="w-full px-4 py-3 text-sm text-left hover:bg-white/5 border-b border-white/5 flex items-center gap-3" onClick={() => setProfileOpen(false)}>
-                  <Home className="w-4 h-4 text-purple-400" /> Dashboard
+                <button className="dropdown-item" onClick={() => setProfileOpen(false)}>
+                  <Home size={14} color="#a78bfa" /> Dashboard
                 </button>
-                <button className="w-full px-4 py-3 text-sm text-left hover:bg-white/5 border-b border-white/5 flex items-center gap-3" onClick={() => setProfileOpen(false)}>
-                  <Settings className="w-4 h-4 text-white/40" /> Settings & API Keys
+                <button className="dropdown-item" onClick={() => setProfileOpen(false)}>
+                  <Settings size={14} color="rgba(255,255,255,0.35)" /> Settings & API Keys
                 </button>
-                <button className="w-full px-4 py-3 text-sm text-left hover:bg-red-500/10 text-red-400 flex items-center gap-3" onClick={signOut}>
-                  <LogOut className="w-4 h-4" /> Sign Out
+                <button className="dropdown-item danger" onClick={signOut}>
+                  <LogOut size={14} /> Sign Out
                 </button>
               </div>
             )}
           </div>
-        </header>
+        </nav>
 
-        {/* MAIN GENERIC AREA */}
-        <main className="dash-content w-full items-stretch">
-          
+        {/* ── MAIN ── */}
+        <main className="main-content">
+
+          {/* ══ IDLE PHASE ══ */}
           {phase === 'idle' && (
             <>
-              {/* HERO */}
-              <div className="hero-box">
-                <div className="hero-glow"></div>
-                <div className="sys-active"><div className="pulse-dot"></div> SYSTEM ACTIVE</div>
-                <h1 className="hero-title">Welcome back, <span className="hero-name-gradient">{username}</span></h1>
-                <p className="text-white/40 text-[15px] font-medium max-w-lg leading-relaxed">
-                  Your security command center. Run scans, track vulnerabilities, and let AI patch your code.
+              {/* Hero */}
+              <div className="hero">
+                <div className="hero-eyebrow">
+                  <div className="nav-dot" /> System Active
+                </div>
+                <h1 className="hero-h1">
+                  Welcome back,{' '}
+                  <span className="hero-gradient">{username}</span>
+                </h1>
+                <p className="hero-sub">
+                  Your security command center. Run scans, track vulnerabilities, and let AI patch your code automatically.
                 </p>
               </div>
 
-              {/* STATS */}
-              <div className="stats-grid">
-                <div className="card">
-                  <div className="card-icon-box bg-purple-500/10 text-purple-400"><Code className="w-5 h-5" /></div>
-                  <AnimatedCounter target={stats.total} />
-                  <span>Total Scans</span>
-                </div>
-                <div className="card">
-                  <div className="card-icon-box bg-pink-500/10 text-pink-400"><Bug className="w-5 h-5" /></div>
-                  <AnimatedCounter target={stats.vulns} />
-                  <span>Vulnerabilities</span>
-                </div>
-                <div className="card">
-                  <div className="card-icon-box bg-orange-500/10 text-orange-400"><AlertTriangle className="w-5 h-5" /></div>
-                  <AnimatedCounter target={stats.crit} />
-                  <span>Critical / High</span>
-                </div>
-                <div className="card">
-                  <div className="card-icon-box bg-teal-500/10 text-teal-400"><Sparkles className="w-5 h-5" /></div>
-                  <AnimatedCounter target={stats.patched} />
-                  <span>Auto-Patched</span>
-                </div>
+              {/* Stats */}
+              <div className="stats-row">
+                {[
+                  { icon: <Terminal size={18} />, color: '#7c3aed', bg: 'rgba(124,58,237,0.12)', val: stats.total, label: 'Total Scans' },
+                  { icon: <Bug size={18} />, color: '#db2777', bg: 'rgba(219,39,119,0.12)', val: stats.vulns, label: 'Vulnerabilities' },
+                  { icon: <AlertTriangle size={18} />, color: '#ea580c', bg: 'rgba(234,88,12,0.12)', val: stats.crit, label: 'Critical / High' },
+                  { icon: <Zap size={18} />, color: '#0d9488', bg: 'rgba(13,148,136,0.12)', val: stats.patched, label: 'Auto-Patched' },
+                ].map((s, i) => (
+                  <div className="stat-card" key={i}>
+                    <div className="stat-icon" style={{ background: s.bg, color: s.color }}>{s.icon}</div>
+                    <AnimatedCounter target={s.val} />
+                    <div className="stat-label">{s.label}</div>
+                  </div>
+                ))}
               </div>
 
-              {/* SCAN SECTION */}
-              <div className="scanner-box">
-                <div className="scanner-tabs">
-                  <div 
-                    className={`sc-tab ${scanMode === 'code' ? 'active' : 'inactive'}`} 
-                    onClick={() => setScanMode('code')}
-                  >
-                    <Code className="w-4 h-4"/> Paste Code
+              {/* Scanner */}
+              <div className="scanner-wrap">
+                <div className="scanner-mode-tabs">
+                  <div className={`mode-tab ${scanMode === 'code' ? 'active' : ''}`} onClick={() => setScanMode('code')}>
+                    <Code size={15} /> Paste Code
                   </div>
-                  <div 
-                    className={`sc-tab ${scanMode === 'url' ? 'active' : 'inactive'}`} 
-                    onClick={() => setScanMode('url')}
-                  >
-                    <Globe className="w-4 h-4"/> Website URL
+                  <div className={`mode-tab ${scanMode === 'url' ? 'active' : ''}`} onClick={() => setScanMode('url')}>
+                    <Globe size={15} /> Website URL
                   </div>
                 </div>
-                <div className="sc-body">
+                <div className="scanner-body">
                   {scanMode === 'code' ? (
                     <>
-                      <label className="sc-label">Programming Language</label>
-                      <select 
-                        className="sc-select" 
-                        value={language} 
-                        onChange={e => handleLanguageChange(e.target.value)}
-                      >
-                        {Object.keys(CODE_SAMPLES).map(lang => (
-                          <option key={lang}>{lang}</option>
-                        ))}
+                      <label className="form-label">Programming Language</label>
+                      <select className="form-select" value={language} onChange={e => handleLanguageChange(e.target.value)}>
+                        {Object.keys(CODE_SAMPLES).map(lang => <option key={lang}>{lang}</option>)}
                       </select>
-                      
-                      <label className="sc-label">Paste your code</label>
-                      <textarea 
-                        className="code-area" 
-                        value={code} 
-                        onChange={e => setCode(e.target.value)}
-                        spellCheck={false}
-                      />
+                      <label className="form-label">Paste your code</label>
+                      <textarea className="code-editor" value={code} onChange={e => setCode(e.target.value)} spellCheck={false} />
                     </>
                   ) : (
                     <>
-                      <label className="sc-label">Website URL</label>
-                      <input 
-                        className="sc-select" 
-                        placeholder="https://example.com"
-                        value={code}
-                        onChange={e => setCode(e.target.value)}
-                      />
-                      <p className="text-white/20 text-xs mb-6">Enter the URL of the website you want to scan for network-level vulnerabilities.</p>
+                      <label className="form-label">Website URL</label>
+                      <input className="form-select" style={{ marginBottom: 10 }} placeholder="https://example.com" value={code} onChange={e => setCode(e.target.value)} />
+                      <p className="url-hint">Enter the full URL of the website you want to scan for network-level vulnerabilities and missing security headers.</p>
                     </>
                   )}
-                  
-                  <button className="scan-action-btn" onClick={startScan} disabled={!code.trim()}>
-                    <Sparkles className="w-5 h-5" /> Start Security Scan
+                  <button className="scan-btn" onClick={startScan} disabled={!code.trim()}>
+                    <Sparkles size={16} /> Start Security Scan
                   </button>
                 </div>
               </div>
             </>
           )}
 
+          {/* ══ SCANNING PHASE ══ */}
           {phase === 'scanning' && (
-            <div className="scanning-view">
-              <div className="scan-icon-pulse"></div>
-              <h2 className="scan-title">Scanning in Progress</h2>
-              <p className="scan-sub">Analyzing code for vulnerabilities...</p>
-              
-              <div className="scan-steps-list">
+            <div className="scanning-screen">
+              <div className="scan-orb">
+                <Sparkles size={34} color="#c026d3" />
+              </div>
+              <div>
+                <h2 className="scan-h">Scanning in Progress</h2>
+                <p className="scan-sub" style={{ marginTop: 6 }}>Analyzing for vulnerabilities — please wait</p>
+              </div>
+              <div className="scan-steps">
                 {scanSteps.map((s, i) => (
-                  <div key={i} className="scan-step" style={{animationDelay: `${i * 0.1}s`}}>
-                    <div className="step-dot"></div> {s}
+                  <div key={i} className="scan-step-item" style={{ animationDelay: `${i * 0.08}s` }}>
+                    <div className="step-pip" />
+                    {s}
                   </div>
                 ))}
               </div>
-              
-              <div className="p-bar-container">
-                <div className="p-bar-fill" style={{width: `${(scanSteps.length / 4) * 100}%`}}></div>
+              <div className="progress-track">
+                <div className="progress-bar" style={{ width: `${(scanSteps.length / 4) * 100}%` }} />
               </div>
             </div>
           )}
 
+          {/* ══ ALERT MODAL ══ */}
           {phase === 'alert' && (
-            <div className="modal-overlay">
-              <div className="alert-card">
-                <button className="absolute top-4 right-4 text-white/40 hover:text-white" onClick={() => setPhase('report')}>✕</button>
-                <div className="alert-ico-wrap"><Shield className="w-10 h-10" /></div>
-                <h2 className="alert-title">🚨 Dangerous Code Detected!</h2>
-                <p className="alert-desc">Found {vulns.filter(v=>v.severity==='critical').length} critical and {vulns.filter(v=>v.severity==='high').length} high severity vulnerabilities that need immediate attention.</p>
-                
-                <div className="alert-pill">{vulns.filter(v=>v.severity==='critical').length} Critical</div>
-                
-                <button className="alert-btn" onClick={() => setPhase('report')}>
-                  View Full Report →
-                </button>
+            <div className="modal-bg">
+              <div className="alert-box">
+                <button className="alert-close" onClick={() => setPhase('report')}>✕</button>
+                <div className="alert-icon-wrap"><Shield size={38} /></div>
+                <h2 className="alert-title">Dangerous Code Detected</h2>
+                <p className="alert-desc">
+                  Found <strong style={{ color: '#fff' }}>{vulns.filter(v => v.severity === 'critical').length} critical</strong> and{' '}
+                  <strong style={{ color: '#fff' }}>{vulns.filter(v => v.severity === 'high').length} high</strong> severity vulnerabilities requiring immediate attention.
+                </p>
+                <div className="alert-chip">
+                  <AlertTriangle size={13} />
+                  {vulns.filter(v => v.severity === 'critical').length} Critical Issues Found
+                </div>
+                <button className="alert-cta" onClick={() => setPhase('report')}>View Full Security Report →</button>
               </div>
             </div>
           )}
 
+          {/* ══ REPORT PHASE ══ */}
           {phase === 'report' && (
-            <div className="fade-in">
-              <button className="mb-6 text-sm text-white/40 hover:text-white flex items-center gap-2" onClick={() => setPhase('idle')}>
+            <div style={{ animation: 'fadeIn 0.3s ease' }}>
+              <button className="back-btn" onClick={() => setPhase('idle')}>
                 ← Back to Dashboard
               </button>
-              
-              <div className="rep-header">
+
+              {/* Report header */}
+              <div className="report-header">
                 <div>
-                  <div className="rep-title-wrap">
-                    <Shield className="w-6 h-6 text-purple-400" />
-                    <h1 className="rep-title">Scan Complete</h1>
+                  <div className="report-title-row">
+                    <Shield size={22} color="#a78bfa" />
+                    <h1 className="report-h">Scan Complete</h1>
                   </div>
-                  <div className="rep-sub">
-                    Found {vulns.length} vulnerabilit{vulns.length===1?'y':'ies'} in 2.8s • {language}
-                  </div>
-                  
-                  <div className="badges-row">
-                    <div className="rep-badge bg-red-500/10 border-red-500/20 text-red-400">
-                      <div className="w-2 h-2 rounded-full border border-red-400"></div> 
-                      {vulns.filter(v=>v.severity==='critical').length} critical
-                    </div>
-                    <div className="rep-badge bg-orange-500/10 border-orange-500/20 text-orange-400">
-                      <div className="w-2 h-2 rounded-full border border-orange-400"></div> 
-                      {vulns.filter(v=>v.severity==='high').length} high
-                    </div>
-                    <div className="rep-badge bg-yellow-500/10 border-yellow-500/20 text-yellow-400">
-                      <div className="w-2 h-2 rounded-full border border-yellow-400"></div> 
-                      {vulns.filter(v=>v.severity==='medium').length} medium
-                    </div>
-                    <div className="rep-badge bg-blue-500/10 border-blue-500/20 text-blue-400">
-                      <div className="w-2 h-2 rounded-full border border-blue-400 px-1">i</div> 
-                      0 low
-                    </div>
+                  <p className="report-meta">
+                    Found {vulns.length} vulnerabilit{vulns.length === 1 ? 'y' : 'ies'} in 2.8s &nbsp;·&nbsp; {language}
+                  </p>
+                  <div className="badge-row">
+                    {[
+                      { sev: 'critical', count: vulns.filter(v => v.severity === 'critical').length, color: '#ef4444', bg: 'rgba(239,68,68,0.08)', dot: '#ef4444' },
+                      { sev: 'high', count: vulns.filter(v => v.severity === 'high').length, color: '#f97316', bg: 'rgba(249,115,22,0.08)', dot: '#f97316' },
+                      { sev: 'medium', count: vulns.filter(v => v.severity === 'medium').length, color: '#eab308', bg: 'rgba(234,179,8,0.08)', dot: '#eab308' },
+                      { sev: 'low', count: 0, color: '#60a5fa', bg: 'rgba(96,165,250,0.08)', dot: '#60a5fa' },
+                    ].map((b, i) => (
+                      <div key={i} className="sev-badge" style={{ color: b.color, background: b.bg, borderColor: `${b.color}30` }}>
+                        <div className="sev-dot" style={{ background: b.dot }} />
+                        {b.count} {b.sev}
+                      </div>
+                    ))}
                   </div>
                 </div>
-                
-                <div className="rep-btn-group relative">
-                  <button 
-                    className="rep-btn-prm"
-                    onClick={() => setExportOpen(!exportOpen)}
-                  >
-                    <Download className="w-4 h-4"/> Export & Share
+
+                <div className="btn-row" style={{ position: 'relative' }}>
+                  <button className="btn-primary" onClick={() => setExportOpen(!exportOpen)}>
+                    <Download size={14} /> Export & Share
                   </button>
                   {exportOpen && (
-                    <div className="absolute top-full right-0 mt-2 w-56 bg-[#1a1c22]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[60] overflow-hidden fade-in">
-                      <div className="px-4 py-3 border-b border-white/5 bg-white/5 text-[10px] font-black text-white/40 uppercase tracking-widest">Select Export Format</div>
-                      <button className="w-full px-4 py-3 text-sm text-left hover:bg-white/5 border-b border-white/5 flex items-center gap-3 transition-colors" onClick={() => { navigator.clipboard.writeText(JSON.stringify(vulns, null, 2)); setExportOpen(false) }}>
-                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:bg-blue-500/20"><Copy className="w-4 h-4" /></div>
-                        <span>Copy JSON Report</span>
+                    <div className="export-dropdown">
+                      <div className="export-header">Select Export Format</div>
+                      <button className="export-item" onClick={() => { navigator.clipboard.writeText(JSON.stringify(vulns, null, 2)); setExportOpen(false) }}>
+                        <div className="export-icon" style={{ background: 'rgba(96,165,250,0.1)', color: '#60a5fa' }}><Copy size={14} /></div>
+                        Copy JSON Report
                       </button>
-                      <button className="w-full px-4 py-3 text-sm text-left hover:bg-white/5 border-b border-white/5 flex items-center gap-3 transition-colors" onClick={() => setExportOpen(false)}>
-                        <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400"><Download className="w-4 h-4" /></div>
-                        <span>Download PDF Brief</span>
+                      <button className="export-item" onClick={() => setExportOpen(false)}>
+                        <div className="export-icon" style={{ background: 'rgba(124,58,237,0.1)', color: '#a78bfa' }}><Download size={14} /></div>
+                        Download PDF Brief
                       </button>
-                      <button className="w-full px-4 py-3 text-sm text-left hover:bg-white/5 flex items-center gap-3 transition-colors" onClick={() => setExportOpen(false)}>
-                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400"><FileCode2 className="w-4 h-4" /></div>
-                        <span>Open in VS Code</span>
+                      <button className="export-item" onClick={() => setExportOpen(false)}>
+                        <div className="export-icon" style={{ background: 'rgba(16,185,129,0.1)', color: '#34d399' }}><FileCode2 size={14} /></div>
+                        Open in VS Code
                       </button>
                     </div>
                   )}
-                  <button className="rep-btn-sec" onClick={() => setPhase('idle')}><RotateCcw className="w-4 h-4"/> New Scan</button>
+                  <button className="btn-secondary" onClick={() => setPhase('idle')}>
+                    <RotateCcw size={14} /> New Scan
+                  </button>
                 </div>
               </div>
 
-              <div className="rep-body">
-                <div className="rep-tabs">
-                  <div className={`rtab ${activeTab==='vulns'?'active':''}`} onClick={()=>setActiveTab('vulns')}><Bug className="w-4 h-4"/> Vulnerabilities</div>
-                  <div className={`rtab ${activeTab==='original'?'active':''}`} onClick={()=>setActiveTab('original')}><Code className="w-4 h-4"/> Original Code</div>
-                  <div className={`rtab ${activeTab==='corrected'?'active':''}`} onClick={()=>setActiveTab('corrected')}><CheckCircle className="w-4 h-4"/> Corrected Code</div>
-                  <div className={`rtab flex-1 justify-end ${activeTab==='sentry'?'active':''}`} onClick={()=>setActiveTab('sentry')}><Sparkles className="w-4 h-4"/> Sentry AI</div>
+              {/* Report body */}
+              <div className="report-body" style={{ marginTop: 16 }}>
+                {/* Tab bar */}
+                <div className="tab-bar">
+                  <div className={`tab-btn ${activeTab === 'vulns' ? 'active' : ''}`} onClick={() => setActiveTab('vulns')}>
+                    <Bug size={14} /> Vulnerabilities
+                    {vulns.length > 0 && (
+                      <span style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 6, marginLeft: 2 }}>
+                        {vulns.length}
+                      </span>
+                    )}
+                  </div>
+                  <div className={`tab-btn ${activeTab === 'original' ? 'active' : ''}`} onClick={() => setActiveTab('original')}>
+                    <Eye size={14} /> Original Code
+                  </div>
+                  <div className={`tab-btn ${activeTab === 'corrected' ? 'active' : ''}`} onClick={() => setActiveTab('corrected')}>
+                    <CheckCircle size={14} /> Corrected Code
+                  </div>
+                  <div className="tab-spacer" />
+                  <div className={`sentry-tab-btn ${activeTab === 'sentry' ? 'active' : ''}`} onClick={() => setActiveTab('sentry')}>
+                    <Sparkles size={14} /> Sentry AI
+                  </div>
                 </div>
 
-                {activeTab === 'sentry' && (
-                  <div className="sentry-panel fade-in">
-                    <div className="ai-banner glass-panel">
-                      <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 animate-pulse"><Sparkles className="w-3 h-3"/></div>
-                      Sentry AI Agent: Operational & Analyzing Threat Metrices
-                    </div>
-                    
-                    <div className="intel-card border-white/5 !bg-[#0f1115]">
-                      <div className="ic-header border-b border-white/5 bg-white/[0.02] flex justify-between items-center px-6">
-                         <div className="flex items-center gap-3">
-                           <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#d946ef] to-[#8b5cf6] flex items-center justify-center text-white shrink-0 shadow-[0_0_20px_rgba(217,70,239,0.5)] text-[10px] font-black">AI</div>
-                           <span className="tracking-tight font-extrabold uppercase text-[12px] opacity-80">Intelligence Hub</span>
-                         </div>
-                         <div className="flex items-center gap-2">
-                           <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981]"></div>
-                           <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Neural Link Active</span>
-                         </div>
-                      </div>
-                      
-                      <div className="chat-scroll scrollbar-thin scrollbar-thumb-white/10">
-                        {chatMessages.length === 0 ? (
-                           <div className="flex flex-col items-center justify-center h-full text-white/20 gap-4">
-                             <Sparkles className="w-12 h-12 animate-pulse" />
-                             <p className="text-sm font-medium tracking-widest uppercase">Initializing neural interface...</p>
-                           </div>
-                        ) : (
-                          chatMessages.map((msg, i) => (
-                            <div key={i} className={msg.role === 'user' ? 'chat-msg-user' : 'chat-msg-bot'}>
-                              {msg.text.split('\n').map((line, li) => (
-                                <p key={li} className="mb-2 last:mb-0">{line}</p>
-                              ))}
-                            </div>
-                          ))
-                        )}
-                        {isTyping && (
-                          <div className="chat-msg-bot">
-                            <div className="flex gap-1.5 items-center opacity-50">
-                              <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-bounce"></span>
-                              <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce delay-75"></span>
-                              <span className="w-1.5 h-1.5 rounded-full bg-purple-300 animate-bounce delay-150"></span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="p-6 bg-black/20 border-t border-white/5">
-                        <div className="chat-bar !bg-[#15171d] !border-white/10 !p-1.5">
-                          <input 
-                            type="text" 
-                            placeholder="Type a meaningful security question..." 
-                            className="bg-transparent border-none outline-none text-white text-[14px] font-medium px-4 py-2 flex-1"
-                            value={chatInput}
-                            onChange={e => setChatInput(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && sendAIQuery()}
-                          />
-                          <button 
-                            className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${isTyping || !chatInput.trim() ? 'bg-white/5 text-white/20' : 'bg-gradient-to-tr from-[#d946ef] to-[#8b5cf6] text-white shadow-[0_0_15px_rgba(217,70,239,0.4)] hover:scale-105 active:scale-95'}`}
-                            onClick={sendAIQuery}
-                            disabled={isTyping || !chatInput.trim()}
-                          >
-                             <Sparkles className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === 'corrected' && (
-                  <div className="p-10 fade-in flex flex-col gap-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex flex-col gap-1">
-                        <h3 className="text-xl font-black text-white">Neural Patch View</h3>
-                        <p className="text-xs text-white/30 uppercase tracking-widest font-mono">Comparing: Scanned Source (L) vs AI Corrected (R)</p>
-                      </div>
-                      <div className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center gap-2">
-                        <Sparkles className="w-3 h-3" /> Auto-Correction Verified
-                      </div>
-                    </div>
-                    <div className="glass-panel rounded-3xl overflow-hidden border border-white/5">
-                      <DiffViewer 
-                        original={code} 
-                        patched={scanMode === 'code' ? (CODE_SAMPLES[language]?.fixed || code) : 'Network hardening report generated.'} 
-                      />
-                    </div>
-                  </div>
-                )}
-                
-                {activeTab === 'original' && (
-                  <div className="p-10 fade-in">
-                    <div className="relative group p-1 bg-white/[0.03] rounded-3xl border border-white/10 overflow-hidden glass-panel">
-                      <div className="px-6 py-4 border-b border-white/10 bg-white/[0.02] flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                           <div className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_10px_#8b5cf6]"></div>
-                           <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Source Code Analysis</span>
-                        </div>
-                        <span className="text-purple-400 font-mono text-xs font-bold px-3 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20">{language}</span>
-                      </div>
-                      <pre className="p-8 bg-black/40 font-mono text-[13px] text-white/70 overflow-x-auto leading-relaxed max-h-[600px] scrollbar-thin scrollbar-thumb-white/10">
-                        {code}
-                      </pre>
-                    </div>
-                  </div>
-                )}
-                
+                {/* ── Vulnerabilities Tab ── */}
                 {activeTab === 'vulns' && (
-                  <div className="p-8 fade-in flex flex-col gap-8">
-                    {vulns.map((v, i) => (
-                      <div key={i} className="group relative border border-white/10 bg-white/[0.02] backdrop-blur-md hover:bg-white/[0.05] hover:border-white/20 transition-all duration-500 rounded-3xl p-10 overflow-hidden glass-panel">
-                        <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${v.severity === 'critical' ? 'bg-gradient-to-b from-red-500 to-transparent shadow-[0_0_20px_rgba(239,68,68,0.6)]' : 'bg-gradient-to-b from-orange-500 to-transparent shadow-[0_0_20px_rgba(249,115,22,0.6)]'}`}></div>
-                        
-                        <div className="flex justify-between items-start mb-8">
-                          <div>
-                            <div className="flex items-center gap-4 mb-3">
-                              <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] shadow-lg ${v.severity === 'critical' ? 'bg-red-500 text-white' : 'bg-orange-500 text-white'}`}>
-                                {v.severity}
-                              </span>
-                              <span className="text-white/30 text-[11px] font-mono tracking-widest uppercase bg-white/5 px-2 py-1 rounded">V-ID: SY-{i+102}</span>
-                            </div>
-                            <h3 className="text-2xl font-black tracking-tight text-white group-hover:text-purple-400 transition-colors">{v.name}</h3>
-                          </div>
-                          <div className="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-white/40 font-mono text-[10px] uppercase tracking-widest">Entry: Line {v.line}</div>
+                  <div className="vulns-panel" style={{ animation: 'fadeIn 0.25s ease' }}>
+                    {vulns.length === 0 ? (
+                      <div className="empty-vulns">
+                        <div className="empty-icon" style={{ background: 'rgba(16,185,129,0.1)', color: '#34d399', border: '1px solid rgba(16,185,129,0.2)' }}>
+                          <CheckCircle size={34} />
                         </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                          <div className="flex flex-col gap-4">
-                            <span className="text-[11px] font-black text-white/40 uppercase tracking-[0.3em] flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div> Intelligence Report
-                            </span>
-                            <div className="text-white/80 text-[15px] leading-relaxed font-medium bg-black/20 p-6 rounded-2xl border border-white/5">
-                              {v.description}
+                        <h3 className="empty-h">System Secure</h3>
+                        <p className="empty-p">Cyber Sentry AI deep scan returned zero critical findings. Your baseline security integrity is optimal.</p>
+                      </div>
+                    ) : vulns.map((v, i) => (
+                      <div className="vuln-card" key={i}>
+                        <div className="vuln-stripe" style={{ background: v.severity === 'critical' ? 'linear-gradient(to bottom, #ef4444, transparent)' : 'linear-gradient(to bottom, #f97316, transparent)' }} />
+                        <div style={{ paddingLeft: 12 }}>
+                          <div className="vuln-top">
+                            <div>
+                              <div className="vuln-badges">
+                                <span className="vuln-sev" style={{ background: v.severity === 'critical' ? '#ef4444' : '#f97316', color: '#fff' }}>
+                                  {v.severity}
+                                </span>
+                                <span className="vuln-id">V-ID: SY-{i + 102}</span>
+                              </div>
+                              <h3 className="vuln-name">{v.name}</h3>
                             </div>
+                            <div className="vuln-line-tag">Entry: Line {v.line}</div>
                           </div>
-                          
-                          <div className="flex flex-col gap-4">
-                            <span className="text-[11px] font-black text-emerald-400/60 uppercase tracking-[0.3em] flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Automated Mitigation
-                            </span>
-                            <div className="bg-emerald-500/5 p-6 rounded-2xl border border-emerald-500/20 text-[15px] italic text-emerald-400 font-bold leading-relaxed shadow-[inset_0_0_30px_rgba(16,185,129,0.05)]">
-                              "{v.fix}"
+                          <div className="vuln-grid">
+                            <div className="vuln-section">
+                              <div className="vuln-section-label" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                                <div className="label-dot" style={{ background: '#7c3aed' }} />
+                                Intelligence Report
+                              </div>
+                              <div className="vuln-desc-box">{v.description}</div>
+                            </div>
+                            <div className="vuln-section">
+                              <div className="vuln-section-label" style={{ color: 'rgba(52,211,153,0.7)' }}>
+                                <div className="label-dot" style={{ background: '#10b981' }} />
+                                Automated Mitigation
+                              </div>
+                              <div className="vuln-fix-box" style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.15)', color: '#6ee7b7' }}>
+                                {v.fix}
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
                     ))}
-                    {vulns.length === 0 && (
-                      <div className="flex flex-col items-center justify-center py-32 text-center">
-                        <div className="w-20 h-20 rounded-3xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 mb-8 border border-emerald-500/20 shadow-[0_0_50px_rgba(16,185,129,0.15)] animate-bounce">
-                          <CheckCircle className="w-10 h-10" />
+                  </div>
+                )}
+
+                {/* ── Original Code Tab ── */}
+                {activeTab === 'original' && (
+                  <div className="original-panel" style={{ animation: 'fadeIn 0.25s ease' }}>
+                    <div className="code-viewer">
+                      <div className="code-viewer-header">
+                        <div className="code-viewer-label">
+                          <div className="code-viewer-dot" />
+                          <span className="code-viewer-title">Source Code Analysis</span>
                         </div>
-                        <h3 className="text-3xl font-black mb-3">System Secure</h3>
-                        <p className="text-white/40 max-w-sm font-medium">Cyber Sentry AI deep scan returned zero critical findings. Baseline security integrity is optimal.</p>
+                        <span className="lang-tag">{language}</span>
                       </div>
-                    )}
+                      <pre>{code}</pre>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Corrected Code Tab ── */}
+                {activeTab === 'corrected' && (
+                  <div className="corrected-panel" style={{ animation: 'fadeIn 0.25s ease' }}>
+                    <div className="diff-header-row">
+                      <div>
+                        <h3 className="diff-h">Neural Patch View</h3>
+                        <p className="diff-sub">Comparing: Scanned Source (L) vs AI Corrected (R)</p>
+                      </div>
+                      <div className="auto-verified">
+                        <Sparkles size={12} /> Auto-Correction Verified
+                      </div>
+                    </div>
+                    <DiffViewer
+                      original={code}
+                      patched={scanMode === 'code' ? (CODE_SAMPLES[language]?.fixed || code) : 'Network hardening report generated.'}
+                    />
+                  </div>
+                )}
+
+                {/* ── Sentry AI Tab ── */}
+                {activeTab === 'sentry' && (
+                  <div className="sentry-panel" style={{ animation: 'fadeIn 0.25s ease' }}>
+                    <div className="sentry-status-bar">
+                      <div className="sentry-orb">AI</div>
+                      Sentry AI Agent: Operational &amp; Analyzing Threat Metrics
+                    </div>
+                    <div className="chat-container">
+                      <div className="chat-header">
+                        <div className="chat-header-left">
+                          <div className="sentry-orb" style={{ width: 32, height: 32 }}>AI</div>
+                          <span className="chat-ai-badge">Intelligence Hub</span>
+                        </div>
+                        <div className="neural-active">
+                          <div className="neural-dot" /> Neural Link Active
+                        </div>
+                      </div>
+                      <div className="chat-messages">
+                        {chatMessages.length === 0 ? (
+                          <div className="chat-empty">
+                            <Sparkles size={40} className="chat-empty-icon" />
+                            <p className="chat-empty-text">Initializing neural interface…</p>
+                          </div>
+                        ) : chatMessages.map((msg, i) => (
+                          <div key={i} className={msg.role === 'user' ? 'msg-user' : 'msg-bot'}>
+                            {msg.text.split('\n').map((line, li) => <p key={li} style={{ marginBottom: li < msg.text.split('\n').length - 1 ? 8 : 0 }}>{line}</p>)}
+                          </div>
+                        ))}
+                        {isTyping && (
+                          <div className="msg-bot">
+                            <div className="typing-indicator">
+                              <div className="typing-dot" /><div className="typing-dot" /><div className="typing-dot" />
+                            </div>
+                          </div>
+                        )}
+                        <div ref={chatEndRef} />
+                      </div>
+                      <div className="chat-input-row">
+                        <input
+                          className="chat-input"
+                          placeholder="Type a meaningful security question..."
+                          value={chatInput}
+                          onChange={e => setChatInput(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && sendAIQuery()}
+                        />
+                        <button
+                          className={`chat-send-btn ${isTyping || !chatInput.trim() ? 'inactive' : 'active'}`}
+                          onClick={sendAIQuery}
+                          disabled={isTyping || !chatInput.trim()}
+                        >
+                          <Sparkles size={17} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
 
               </div>
             </div>
           )}
+
         </main>
       </div>
     </>
