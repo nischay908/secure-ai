@@ -630,7 +630,7 @@ export default function Home() {
             <p className="hsub" style={{animation:'none',margin:'0 auto 38px'}}>An autonomous agent that thinks like a<br/>senior security engineer — in real time.</p>
             <div className="ctas" style={{animation:'none'}}>
               <button className="btn-p" onClick={()=>router.push('/login')}>🛡 Scan My Code Free</button>
-              <button className="btn-o" onClick={()=>router.push('/scan')}>👁 Live Demo</button>
+              <button className="btn-o" onClick={()=>router.push('/dashboard')}>👁 Live Demo</button>
             </div>
           </div>
           

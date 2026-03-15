@@ -86,7 +86,7 @@ export default function LoginPage() {
         error ? setMsg({ t: 'e', txt: error.message }) : setMsg({ t: 's', txt: 'Account created! Check your email.' })
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
-        error ? setMsg({ t: 'e', txt: error.message }) : router.push('/scan')
+        error ? setMsg({ t: 'e', txt: error.message }) : router.push('/dashboard')
       }
     } catch { setMsg({ t: 'e', txt: 'Something went wrong' }) }
     setLoading(false)
@@ -94,7 +94,7 @@ export default function LoginPage() {
 
   const handleForgot = async () => {
     if (!email) { setMsg({ t: 'e', txt: 'Enter your email first' }); return }
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/scan` })
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/dashboard` })
     setMsg(error ? { t: 'e', txt: error.message } : { t: 's', txt: 'Reset email sent!' })
   }
 
@@ -202,7 +202,7 @@ export default function LoginPage() {
             <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,.06)' }} />
           </div>
 
-          <button onClick={() => router.push('/scan')} style={{ width: '100%', background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', color: 'rgba(255,255,255,.38)', padding: '11px', borderRadius: 11, fontWeight: 600, fontSize: 12, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", marginBottom: 14, transition: 'all .2s' }}>
+          <button onClick={() => router.push('/dashboard')} style={{ width: '100%', background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', color: 'rgba(255,255,255,.38)', padding: '11px', borderRadius: 11, fontWeight: 600, fontSize: 12, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", marginBottom: 14, transition: 'all .2s' }}>
             👁 Skip — View Demo (No account needed)
           </button>
 
