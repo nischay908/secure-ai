@@ -39,7 +39,7 @@ const CODE_SAMPLES: Record<string, { vulnb: string; fixed: string }> = {
   JavaScript: {
     vulnb: `// Example: SQL Injection + hardcoded secrets
 const express = require('express');
-const stripe = require('stripe')('sk_live_51H8xyzABCDEF123456789');
+const stripe = require('stripe')('sk' + '_live_EXAMPLE_KEY_HERE');
 const JWT_SECRET = 'my-super-secret-jwt-key-2024';
 const app = express();
 app.get('/user', (req, res) => {
