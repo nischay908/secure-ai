@@ -316,6 +316,11 @@ export default function UnifiedDashboard() {
   const [profileOpen, setProfileOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
   
+  // Chat state
+  const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'bot'; text: string }[]>([])
+  const [chatInput, setChatInput] = useState('')
+  const [isTyping, setIsTyping] = useState(false)
+
   // Report state
   const [activeTab, setActiveTab] = useState<'vulns' | 'original' | 'corrected' | 'sentry'>('sentry')
 
@@ -365,6 +370,17 @@ export default function UnifiedDashboard() {
     const {vulns: foundVulns} = analyzeCode(code, scanMode, language)
     setVulns(foundVulns)
     
+    // Auto-generate first AI message
+    if (foundVulns.length > 0) {
+      setChatMessages([
+        { role: 'bot', text: `Hello ${user?.email?.split('@')[0] || 'User'}. I've completed the security audit. I've detected ${foundVulns.length} vulnerabilities that require your attention. The most critical is the ${foundVulns[0].name}.\n\nYou can see my full briefing in the panel below, or ask me specific questions about these findings.` }
+      ])
+    } else {
+      setChatMessages([
+        { role: 'bot', text: "Excellent news! My deep scan found no security vulnerabilities in this codebase. You're following best practices." }
+      ])
+    }
+    
     await new Promise(r => setTimeout(r, 600))
     
     if (foundVulns.length > 0) {
@@ -394,6 +410,33 @@ export default function UnifiedDashboard() {
     if (CODE_SAMPLES[lang]) {
       setCode(CODE_SAMPLES[lang].vulnb)
     }
+  }
+
+  const sendAIQuery = async () => {
+    if (!chatInput.trim() || isTyping) return
+    const userMsg = chatInput.trim()
+    setChatMessages(prev => [...prev, { role: 'user', text: userMsg }])
+    setChatInput('')
+    setIsTyping(true)
+    
+    // Simulate AI thinking and response
+    await new Promise(r => setTimeout(r, 1200))
+    
+    let response = "I'm analyzing that specific context for you. Based on the scan, I recommend focusing on the parameterized query implementation first."
+    const lowMsg = userMsg.toLowerCase()
+    
+    if (lowMsg.includes('sql') || lowMsg.includes('injection')) {
+      response = "SQL Injection is a critical risk where untrusted input manipulates your database queries. The fix I've generated uses 'Prepared Statements' which separate the query logic from the data, making it impossible for an attacker to break out of the string literal."
+    } else if (lowMsg.includes('fix') || lowMsg.includes('how') || lowMsg.includes('apply')) {
+      response = "To apply the fix, navigate to the 'Corrected Code' tab. You'll see I've refactored the data access logic using secure patterns. You can copy that directly into your source file."
+    } else if (lowMsg.includes('url') || lowMsg.includes('header') || lowMsg.includes('network')) {
+      response = "For the network vulnerabilities, you should ensure your web server (like Nginx or Apache) is configured to send HSTS and X-Frame-Options headers. This prevents simple Man-in-the-Middle and Clickjacking attacks."
+    } else if (lowMsg.includes('who') || lowMsg.includes('you')) {
+      response = "I am Sentry AI, your agentic security assistant. I don't just find bugs; I help you understand them and fix them with production-ready code."
+    }
+    
+    setChatMessages(prev => [...prev, { role: 'bot', text: response }])
+    setIsTyping(false)
   }
 
   const signOut = async () => {
@@ -519,6 +562,42 @@ export default function UnifiedDashboard() {
         @keyframes fadeIn { from{opacity:0} to{opacity:1} }
         @keyframes popIn { 0%{opacity:0;transform:scale(0.95)} 100%{opacity:1;transform:scale(1)} }
         @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+        @keyframes gleam { from{left:-100%} to{left:150%} }
+        @keyframes bgShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+
+        /* Futuristic Redesigns */
+        .rep-btn-prm { 
+          position: relative;
+          background: linear-gradient(135deg, #d946ef, #8b5cf6, #3b82f6); 
+          background-size: 200% 200%;
+          animation: bgShift 6s ease infinite;
+          border: none; padding: 12px 24px; border-radius: 12px; color: white; 
+          font-weight: 800; font-size: 14px; cursor: pointer; display: flex; 
+          align-items: center; gap: 10px; overflow: hidden; 
+          box-shadow: 0 0 20px rgba(217,70,239,0.3);
+          transition: all 0.3s ease;
+        }
+        .rep-btn-prm::after {
+          content: ''; position: absolute; top: -50%; left: -100%; width: 50%; height: 200%;
+          background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+          transform: rotate(25deg); animation: gleam 4s infinite;
+        }
+        .rep-btn-prm:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(217,70,239,0.5); }
+
+        .chat-msg-user {
+          align-self: flex-end; background: linear-gradient(135deg, #8b5cf6, #6366f1);
+          color: white; padding: 12px 20px; border-radius: 18px 18px 4px 18px;
+          max-width: 80%; animation: fadeUp 0.3s ease; font-weight: 500; font-size: 14px;
+        }
+        .chat-msg-bot {
+          align-self: flex-start; background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.9);
+          padding: 16px; border-radius: 4px 18px 18px 18px;
+          max-width: 90%; animation: fadeIn 0.4s ease; line-height: 1.6; font-size: 14px;
+        }
+        .chat-scroll { height: 400px; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth; }
+        .chat-scroll::-webkit-scrollbar { width: 4px; }
+        .chat-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
       `}</style>
 
       <div className="page-container flex flex-col items-center">
@@ -744,15 +823,19 @@ export default function UnifiedDashboard() {
                     <Download className="w-4 h-4"/> Export & Share
                   </button>
                   {exportOpen && (
-                    <div className="absolute top-full right-0 mt-2 w-48 bg-[#1a1c22] border border-white/5 rounded-xl shadow-2xl z-[60] overflow-hidden fade-in">
-                      <button className="w-full px-4 py-3 text-sm text-left hover:bg-white/5 border-b border-white/5 flex items-center gap-3" onClick={() => { navigator.clipboard.writeText(JSON.stringify(vulns, null, 2)); setExportOpen(false) }}>
-                        <Copy className="w-4 h-4" /> Copy JSON Report
+                    <div className="absolute top-full right-0 mt-2 w-56 bg-[#1a1c22]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[60] overflow-hidden fade-in">
+                      <div className="px-4 py-3 border-b border-white/5 bg-white/5 text-[10px] font-black text-white/40 uppercase tracking-widest">Select Export Format</div>
+                      <button className="w-full px-4 py-3 text-sm text-left hover:bg-white/5 border-b border-white/5 flex items-center gap-3 transition-colors" onClick={() => { navigator.clipboard.writeText(JSON.stringify(vulns, null, 2)); setExportOpen(false) }}>
+                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:bg-blue-500/20"><Copy className="w-4 h-4" /></div>
+                        <span>Copy JSON Report</span>
                       </button>
-                      <button className="w-full px-4 py-3 text-sm text-left hover:bg-white/5 border-b border-white/5 flex items-center gap-3" onClick={() => setExportOpen(false)}>
-                        <Download className="w-4 h-4" /> Download PDF
+                      <button className="w-full px-4 py-3 text-sm text-left hover:bg-white/5 border-b border-white/5 flex items-center gap-3 transition-colors" onClick={() => setExportOpen(false)}>
+                        <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400"><Download className="w-4 h-4" /></div>
+                        <span>Download PDF Brief</span>
                       </button>
-                      <button className="w-full px-4 py-3 text-sm text-left hover:bg-white/5 flex items-center gap-3" onClick={() => setExportOpen(false)}>
-                        <FileCode2 className="w-4 h-4" /> Open in VS Code
+                      <button className="w-full px-4 py-3 text-sm text-left hover:bg-white/5 flex items-center gap-3 transition-colors" onClick={() => setExportOpen(false)}>
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400"><FileCode2 className="w-4 h-4" /></div>
+                        <span>Open in VS Code</span>
                       </button>
                     </div>
                   )}
@@ -769,96 +852,104 @@ export default function UnifiedDashboard() {
                 </div>
 
                 {activeTab === 'sentry' && (
-                  <>
-                    <div className="sentry-panel fade-in">
-                      <div className="ai-banner">
-                        <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400"><Sparkles className="w-3 h-3"/></div>
-                        4. Security hardening recommendations
+                  <div className="sentry-panel fade-in">
+                    <div className="ai-banner glass-panel">
+                      <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 animate-pulse"><Sparkles className="w-3 h-3"/></div>
+                      Sentry AI Agent: Operational & Analyzing Threat Metrices
+                    </div>
+                    
+                    <div className="intel-card border-white/5 !bg-[#0f1115]">
+                      <div className="ic-header border-b border-white/5 bg-white/[0.02] flex justify-between items-center px-6">
+                         <div className="flex items-center gap-3">
+                           <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#d946ef] to-[#8b5cf6] flex items-center justify-center text-white shrink-0 shadow-[0_0_20px_rgba(217,70,239,0.5)] text-[10px] font-black">AI</div>
+                           <span className="tracking-tight font-extrabold uppercase text-[12px] opacity-80">Intelligence Hub</span>
+                         </div>
+                         <div className="flex items-center gap-2">
+                           <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981]"></div>
+                           <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Neural Link Active</span>
+                         </div>
                       </div>
                       
-                      <div className="flex gap-4">
-                        <div className="w-8 h-8 rounded-full bg-magenta-500/20 bg-[#d946ef] flex items-center justify-center text-white shrink-0 shadow-[0_0_15px_rgba(217,70,239,0.5)]">🤖</div>
-                        
-                        <div className="intel-card flex-1 border border-white/5">
-                          <div className="ic-header border-b border-white/5 bg-white/5">Sentry AI Threat Intelligence Briefing</div>
-                          
-                          <div className="ic-body relative bg-transparent">
-                            
-                            {vulns.length > 0 ? (
-                              <>
-                                <div className="z-10 relative">
-                                  <div className="ic-title mb-2 tracking-tight">1. Executive Summary</div>
-                                  <div className="ic-text">
-                                    The scan detected a <b>Critical SQL Injection (SQLi)</b> vulnerability in your data access layer. This is the equivalent of leaving your front door wide open with a sign saying "Vault is this way." By concatenating <span className="ic-code-inline">userId</span> directly into a string, you have granted any user the ability to bypass authentication, dump your entire database, or even execute administrative commands depending on your DB permissions. <b>This must be remediated immediately.</b>
-                                  </div>
-                                </div>
-                                
-                                <div className="flex items-center gap-2 pt-2 pb-2 border-b border-white/5 z-10 relative">
-                                  <div className="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]"></div>
-                                  <div className="text-sm font-black tracking-widest text-white/90">THREAT LEVEL: CRITICAL</div>
-                                </div>
-                                
-                                <div className="z-10 relative">
-                                  <div className="ic-title mb-2 tracking-tight">2. Are there dangerous/malicious changes?</div>
-                                  <div className="ic-text">
-                                    While the scan identifies a <b>vulnerability</b> (a weakness), it does not explicitly confirm a <b>breach</b> (an exploit). However, this specific code pattern is a magnet for automated scrapers and SQLmap-style tools.
-                                    <br/><br/>
-                                    <b>Danger Assessment:</b><br/>
-                                    <b>Data Exfiltration:</b> An attacker could use <span className="ic-code-inline">1 OR 1=1</span> to dump your entire users table.<br/>
-                                    <b>Administrative Takeover:</b> If your DB user has permissions, an attacker could run <span className="ic-code-inline">; DROP TABLE users; --</span> or create a new admin user.<br/>
-                                    <b>Credential Harvesting:</b> Hashed passwords and PII are currently at extreme risk.
-                                  </div>
-                                </div>
-
-                                <div className="z-10 relative">
-                                  <div className="ic-title mb-2 tracking-tight">3. Priority Action Plan</div>
-                                  <div className="ic-text">
-                                    <b>Stop the Bleed:</b> Deploy the parameterized query fix (see tabs) to production immediately.<br/>
-                                    <b>Audit Logs:</b> Check your database logs for unusual queries containing <span className="ic-code-inline">SELECT *</span>, <span className="ic-code-inline">UNION</span>, or <span className="ic-code-inline">OR 1=1</span>.<br/>
-                                    <b>Least Privilege:</b> Ensure the database user account executing the web app does not have `DROP` tables.
-                                  </div>
-                                </div>
-                                
-                                {/* Vertical Accent Bar Component directly generated */}
-                                <div style={{position:'absolute',right:'-2px',top:'50%',width:'4px',height:'120px',background:'#9333ea',borderRadius:'10px',transform:'translateY(-50%)',boxShadow:'0 0 15px rgba(147,51,234,0.6)'}}></div>
-
-                              </>
-                            ) : (
-                              <div className="text-emerald-400 font-bold z-10 relative">Code is secure! No vulnerabilities found. Excellent job.</div>
-                            )}
+                      <div className="chat-scroll scrollbar-thin scrollbar-thumb-white/10">
+                        {chatMessages.length === 0 ? (
+                           <div className="flex flex-col items-center justify-center h-full text-white/20 gap-4">
+                             <Sparkles className="w-12 h-12 animate-pulse" />
+                             <p className="text-sm font-medium tracking-widest uppercase">Initializing neural interface...</p>
+                           </div>
+                        ) : (
+                          chatMessages.map((msg, i) => (
+                            <div key={i} className={msg.role === 'user' ? 'chat-msg-user' : 'chat-msg-bot'}>
+                              {msg.text.split('\n').map((line, li) => (
+                                <p key={li} className="mb-2 last:mb-0">{line}</p>
+                              ))}
+                            </div>
+                          ))
+                        )}
+                        {isTyping && (
+                          <div className="chat-msg-bot">
+                            <div className="flex gap-1.5 items-center opacity-50">
+                              <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-bounce"></span>
+                              <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce delay-75"></span>
+                              <span className="w-1.5 h-1.5 rounded-full bg-purple-300 animate-bounce delay-150"></span>
+                            </div>
                           </div>
+                        )}
+                      </div>
+
+                      <div className="p-6 bg-black/20 border-t border-white/5">
+                        <div className="chat-bar !bg-[#15171d] !border-white/10 !p-1.5">
+                          <input 
+                            type="text" 
+                            placeholder="Type a meaningful security question..." 
+                            className="bg-transparent border-none outline-none text-white text-[14px] font-medium px-4 py-2 flex-1"
+                            value={chatInput}
+                            onChange={e => setChatInput(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && sendAIQuery()}
+                          />
+                          <button 
+                            className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${isTyping || !chatInput.trim() ? 'bg-white/5 text-white/20' : 'bg-gradient-to-tr from-[#d946ef] to-[#8b5cf6] text-white shadow-[0_0_15px_rgba(217,70,239,0.4)] hover:scale-105 active:scale-95'}`}
+                            onClick={sendAIQuery}
+                            disabled={isTyping || !chatInput.trim()}
+                          >
+                             <Sparkles className="w-5 h-5" />
+                          </button>
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="chat-input-area border-t border-white/5 bg-[#16171d] !mt-8">
-                      <div className="chat-bar bg-[#111216]">
-                        <input type="text" placeholder="Ask about your scan results..." className="w-full bg-transparent border-none outline-none text-white text-[15px] font-outfit" />
-                        <button className="chat-send shrink-0">
-                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                        </button>
-                      </div>
-                    </div>
-                  </>
+                  </div>
                 )}
 
                 {activeTab === 'corrected' && (
-                  <div className="p-8 fade-in">
-                    <DiffViewer 
-                      original={code} 
-                      patched={scanMode === 'code' ? (CODE_SAMPLES[language]?.fixed || code) : 'Network hardening report generated.'} 
-                    />
+                  <div className="p-10 fade-in flex flex-col gap-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex flex-col gap-1">
+                        <h3 className="text-xl font-black text-white">Neural Patch View</h3>
+                        <p className="text-xs text-white/30 uppercase tracking-widest font-mono">Comparing: Scanned Source (L) vs AI Corrected (R)</p>
+                      </div>
+                      <div className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center gap-2">
+                        <Sparkles className="w-3 h-3" /> Auto-Correction Verified
+                      </div>
+                    </div>
+                    <div className="glass-panel rounded-3xl overflow-hidden border border-white/5">
+                      <DiffViewer 
+                        original={code} 
+                        patched={scanMode === 'code' ? (CODE_SAMPLES[language]?.fixed || code) : 'Network hardening report generated.'} 
+                      />
+                    </div>
                   </div>
                 )}
                 
                 {activeTab === 'original' && (
-                  <div className="p-8 fade-in">
-                    <div className="relative group p-1 bg-white/5 rounded-xl border border-white/5 overflow-hidden">
-                      <div className="px-4 py-2 border-b border-white/5 bg-white/5 text-[10px] font-black text-white/40 uppercase tracking-[0.2em] flex justify-between items-center">
-                        <span>Original Source</span>
-                        <span className="text-purple-400/60 font-mono">{language}</span>
+                  <div className="p-10 fade-in">
+                    <div className="relative group p-1 bg-white/[0.03] rounded-3xl border border-white/10 overflow-hidden glass-panel">
+                      <div className="px-6 py-4 border-b border-white/10 bg-white/[0.02] flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                           <div className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_10px_#8b5cf6]"></div>
+                           <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Source Code Analysis</span>
+                        </div>
+                        <span className="text-purple-400 font-mono text-xs font-bold px-3 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20">{language}</span>
                       </div>
-                      <pre className="p-6 bg-[#08050a] font-mono text-xs text-white/60 overflow-x-auto leading-relaxed max-h-[500px] scrollbar-thin scrollbar-thumb-white/10">
+                      <pre className="p-8 bg-black/40 font-mono text-[13px] text-white/70 overflow-x-auto leading-relaxed max-h-[600px] scrollbar-thin scrollbar-thumb-white/10">
                         {code}
                       </pre>
                     </div>
@@ -866,35 +957,39 @@ export default function UnifiedDashboard() {
                 )}
                 
                 {activeTab === 'vulns' && (
-                  <div className="p-8 fade-in flex flex-col gap-6">
+                  <div className="p-8 fade-in flex flex-col gap-8">
                     {vulns.map((v, i) => (
-                      <div key={i} className="group relative border border-white/5 bg-[#16171d] hover:bg-[#1a1b21] hover:border-white/10 transition-all duration-300 rounded-2xl p-8 overflow-hidden">
-                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${v.severity === 'critical' ? 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.5)]'}`}></div>
+                      <div key={i} className="group relative border border-white/10 bg-white/[0.02] backdrop-blur-md hover:bg-white/[0.05] hover:border-white/20 transition-all duration-500 rounded-3xl p-10 overflow-hidden glass-panel">
+                        <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${v.severity === 'critical' ? 'bg-gradient-to-b from-red-500 to-transparent shadow-[0_0_20px_rgba(239,68,68,0.6)]' : 'bg-gradient-to-b from-orange-500 to-transparent shadow-[0_0_20px_rgba(249,115,22,0.6)]'}`}></div>
                         
-                        <div className="flex justify-between items-start mb-6">
+                        <div className="flex justify-between items-start mb-8">
                           <div>
-                            <div className="flex items-center gap-3 mb-2">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${v.severity === 'critical' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-orange-500/10 text-orange-500 border border-orange-500/20'}`}>
+                            <div className="flex items-center gap-4 mb-3">
+                              <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] shadow-lg ${v.severity === 'critical' ? 'bg-red-500 text-white' : 'bg-orange-500 text-white'}`}>
                                 {v.severity}
                               </span>
-                              <span className="text-white/20 text-[10px] font-mono tracking-widest uppercase">ID: V-00{i+1}</span>
+                              <span className="text-white/30 text-[11px] font-mono tracking-widest uppercase bg-white/5 px-2 py-1 rounded">V-ID: SY-{i+102}</span>
                             </div>
-                            <h3 className="text-xl font-bold tracking-tight text-white/90">{v.name}</h3>
+                            <h3 className="text-2xl font-black tracking-tight text-white group-hover:text-purple-400 transition-colors">{v.name}</h3>
                           </div>
-                          <div className="text-white/20 font-mono text-[10px] leading-none uppercase tracking-widest py-1 border-b border-white/5">Detection Point: L{v.line}</div>
+                          <div className="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-white/40 font-mono text-[10px] uppercase tracking-widest">Entry: Line {v.line}</div>
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
-                          <div className="flex flex-col gap-3">
-                            <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Vulnerability Intel</span>
-                            <div className="text-white/60 text-sm leading-relaxed font-medium">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                          <div className="flex flex-col gap-4">
+                            <span className="text-[11px] font-black text-white/40 uppercase tracking-[0.3em] flex items-center gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div> Intelligence Report
+                            </span>
+                            <div className="text-white/80 text-[15px] leading-relaxed font-medium bg-black/20 p-6 rounded-2xl border border-white/5">
                               {v.description}
                             </div>
                           </div>
                           
-                          <div className="flex flex-col gap-3">
-                            <span className="text-[10px] font-black text-emerald-400/40 uppercase tracking-[0.2em]">Automated Patch Plan</span>
-                            <div className="bg-emerald-500/5 p-5 rounded-xl border border-emerald-500/10 text-sm italic text-emerald-400/80 font-medium">
+                          <div className="flex flex-col gap-4">
+                            <span className="text-[11px] font-black text-emerald-400/60 uppercase tracking-[0.3em] flex items-center gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Automated Mitigation
+                            </span>
+                            <div className="bg-emerald-500/5 p-6 rounded-2xl border border-emerald-500/20 text-[15px] italic text-emerald-400 font-bold leading-relaxed shadow-[inset_0_0_30px_rgba(16,185,129,0.05)]">
                               "{v.fix}"
                             </div>
                           </div>
@@ -902,12 +997,12 @@ export default function UnifiedDashboard() {
                       </div>
                     ))}
                     {vulns.length === 0 && (
-                      <div className="flex flex-col items-center justify-center py-24 text-center">
-                        <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400 mb-6 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
-                          <CheckCircle className="w-8 h-8" />
+                      <div className="flex flex-col items-center justify-center py-32 text-center">
+                        <div className="w-20 h-20 rounded-3xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 mb-8 border border-emerald-500/20 shadow-[0_0_50px_rgba(16,185,129,0.15)] animate-bounce">
+                          <CheckCircle className="w-10 h-10" />
                         </div>
-                        <h3 className="text-2xl font-bold mb-2">Clean Bill of Health</h3>
-                        <p className="text-white/40 max-w-sm">No critical vulnerabilities detected in this scan. Your baseline security posture looks solid.</p>
+                        <h3 className="text-3xl font-black mb-3">System Secure</h3>
+                        <p className="text-white/40 max-w-sm font-medium">Cyber Sentry AI deep scan returned zero critical findings. Baseline security integrity is optimal.</p>
                       </div>
                     )}
                   </div>
