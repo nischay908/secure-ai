@@ -2,12 +2,14 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { Code, Globe, Shield, Home, User, AlertTriangle, Bug, Sparkles, CheckCircle, ChevronDown, Download, RotateCcw } from 'lucide-react'
+import { Code, Globe, Shield, Home, User, AlertTriangle, Bug, Sparkles, CheckCircle, ChevronDown, Download, RotateCcw, LogOut, Settings, Copy, FileCode2 } from 'lucide-react'
 
 /* ─────────────────────────────────────────────────
-   MOCK DATA & VULN LOGIC (From previous ScanPage)
+   MOCK DATA & VULN LOGIC
 ───────────────────────────────────────────────── */
-const SAMPLE_CODE = `// Example: SQL Injection vulnerability
+const CODE_SAMPLES: Record<string, { vulnb: string; fixed: string }> = {
+  JavaScript: {
+    vulnb: `// Example: SQL Injection vulnerability
 const express = require('express');
 const app = express();
 
@@ -17,9 +19,8 @@ app.get('/user', (req, res) => {
   db.execute(query, (err, results) => {
     res.json(results);
   });
-});`
-
-const FIXED_CODE = `const express = require('express');
+});`,
+    fixed: `const express = require('express');
 const app = express();
 
 app.get('/user', (req, res) => {
@@ -30,25 +31,190 @@ app.get('/user', (req, res) => {
     res.json(results);
   });
 });`
+  },
+  Python: {
+    vulnb: `# Example: SQL Injection in Python Flask
+from flask import Flask, request
+import sqlite3
 
-function analyzeCode(code: string): {vulns:any[];score:number;thinking:string[]} {
+app = Flask(__name__)
+
+@app.route('/login', methods=['POST'])
+def login():
+    username = request.form['username']
+    password = request.form['password']
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    # VULNERABLE: Direct string interpolation into query
+    query = f"SELECT * FROM users WHERE username='{username}' AND password='{password}'"
+    cursor.execute(query)
+    user = cursor.fetchone()
+    if user:
+        return f"Welcome {username}!"
+    return "Invalid credentials"`,
+    fixed: `from flask import Flask, request
+import sqlite3
+
+app = Flask(__name__)
+
+@app.route('/login', methods=['POST'])
+def login():
+    username = request.form['username']
+    password = request.form['password']
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    # FIXED: Use parameterized queries for Python sqlite3
+    query = "SELECT * FROM users WHERE username=? AND password=?"
+    cursor.execute(query, (username, password))
+    user = cursor.fetchone()
+    if user:
+        return f"Welcome {username}!"
+    return "Invalid credentials"`
+  },
+  Java: {
+    vulnb: `// Example: Java SQL Injection
+import java.sql.*;
+
+public class UserAuth {
+    public boolean authenticate(String user, String pass) {
+        try {
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/app", "root", "secret");
+            Statement stmt = conn.createStatement();
+            // VULNERABLE: String concatenation creates unsafe query
+            String query = "SELECT * FROM users WHERE username = '" + user + "' AND password = '" + pass + "'";
+            ResultSet rs = stmt.executeQuery(query);
+            return rs.next();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+}`,
+    fixed: `import java.sql.*;
+
+public class UserAuth {
+    public boolean authenticate(String user, String pass) {
+        try {
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/app", "root", "secret");
+            // FIXED: PreparedStatements automatically escape user input
+            String query = "SELECT * FROM users WHERE username = ? AND password = ?";
+            PreparedStatement pstmt = conn.prepareStatement(query);
+            pstmt.setString(1, user);
+            pstmt.setString(2, pass);
+            ResultSet rs = pstmt.executeQuery();
+            return rs.next();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+}`
+  },
+  Go: {
+    vulnb: `// Example: Go SQLi
+package main
+
+import (
+	"database/sql"
+	"fmt"
+	"net/http"
+)
+
+func getUserHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := r.URL.Query().Get("id")
+		// VULNERABLE: Sprintf concat
+		query := fmt.Sprintf("SELECT name, email FROM users WHERE id = %s", id)
+		
+		var name, email string
+		err := db.QueryRow(query).Scan(&name, &email)
+		if err != nil {
+			http.Error(w, "User not found", 404)
+			return
+		}
+		fmt.Fprintf(w, "User: %s", name)
+	}
+}`,
+    fixed: `package main
+
+import (
+	"database/sql"
+	"fmt"
+	"net/http"
+)
+
+func getUserHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := r.URL.Query().Get("id")
+		// FIXED: Use parameterized query (?) in place of args
+		query := "SELECT name, email FROM users WHERE id = ?"
+		
+		var name, email string
+		err := db.QueryRow(query, id).Scan(&name, &email)
+		if err != nil {
+			http.Error(w, "User not found", 404)
+			return
+		}
+		fmt.Fprintf(w, "User: %s", name)
+	}
+}`
+  }
+}
+
+
+function analyzeCode(inputStr: string, mode: 'code' | 'url', lang: string): {vulns:any[];score:number;thinking:string[]} {
   const thinking: string[] = []
   const vulns: any[] = []
 
-  // Mock SQL Injection detection for JS
-  const hasSQLi = code.includes("SELECT * FROM users WHERE id = \" + userId") || code.includes("req.query.id")
-  
-  if (hasSQLi) {
-    vulns.push({
-      name:'SQL Injection (SQLi)',
-      severity:'critical',
-      description:'F-string SQL concatenation lets attackers inject arbitrary SQL commands.',
-      fix:'Use parameterized queries: db.execute(query, [userId])',
-      line:7
-    })
+  if (mode === 'url') {
+    thinking.push('Initializing network scanner against target URL...', 'Simulating HTTP reconnaissance...', 'Checking default port configurations...')
+    if (inputStr.trim().length > 0) {
+      vulns.push({
+        name: 'Missing Security Headers',
+        severity: 'high',
+        description: 'The target web server is missing crucial security headers like Strict-Transport-Security and X-Frame-Options.',
+        fix: 'Configure your web server (Nginx/Apache) or application framework to append these headers on all responses.',
+        line: 0
+      })
+      vulns.push({
+        name: 'Unencrypted Sub-Resource Calls',
+        severity: 'critical',
+        description: 'Network sniffer detected assets being loaded over HTTP paths, leaving them open to man-in-the-middle attacks.',
+        fix: 'Enforce HTTPS for all resource fetching by rewriting URLs to HTTPS or using a Content Security Policy (upgrade-insecure-requests).',
+        line: 0
+      })
+    }
+  } else {
+    thinking.push(`Parsing ${lang} syntax tree...`, 'Loading language-specific OWASP rule sets...', 'Checking for dangerous operators...')
+    
+    // Check for SQLi patterns based on language select
+    const code = inputStr.toLowerCase()
+    
+    if (code.includes('select ') && code.includes('where ')) {
+      const isVuln = code.includes('+"') || code.includes('+"') || code.includes('+') || code.includes('f"') || code.includes('sprintf') || code.includes('format') || code.includes('%s')
+      
+      if (isVuln) {
+        vulns.push({
+          name: 'SQL Injection (SQLi)',
+          severity: 'critical',
+          description: 'Untrusted input is unsafely concatenated directly into a database query. Attackers can modify the query logic to bypass authentication or steal data.',
+          fix: 'Refactor to use Parameterized Queries or Prepared Statements provided by your database driver.',
+          line: 7
+        })
+      }
+    }
+    
+    // Add generic ones if no SQLi found to demo UI
+    if (vulns.length === 0 && inputStr.length > 20) {
+      vulns.push({
+        name: 'Hardcoded Secrets Detection',
+        severity: 'high',
+        description: 'Potential API token or password found written in plaintext in the repository.',
+        fix: 'Extract secrets to environment variables (.env files) and load them into application memory at runtime.',
+        line: 14
+      })
+    }
   }
 
-  const score = vulns.length === 0 ? 96 : Math.max(10, 28 - vulns.length * 6)
+  const score = vulns.length === 0 ? 98 : Math.max(12, 100 - (vulns.length * 30))
   return {vulns, score, thinking}
 }
 
@@ -139,14 +305,19 @@ export default function UnifiedDashboard() {
   const [loadingStats, setLoadingStats] = useState(true)
   
   // Scan state
-  const [code, setCode] = useState(SAMPLE_CODE)
   const [language, setLanguage] = useState('JavaScript')
-  const [phase, setPhase] = useState<'idle'|'scanning'|'alert'|'report'>('idle')
+  const [code, setCode] = useState(CODE_SAMPLES['JavaScript'].vulnb)
+  const [scanMode, setScanMode] = useState<'code' | 'url'>('code')
+  const [phase, setPhase] = useState<'idle' | 'scanning' | 'alert' | 'report'>('idle')
   const [scanSteps, setScanSteps] = useState<string[]>([])
   const [vulns, setVulns] = useState<any[]>([])
   
+  // UI Dropdowns
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [exportOpen, setExportOpen] = useState(false)
+  
   // Report state
-  const [activeTab, setActiveTab] = useState<'vulns'|'original'|'corrected'|'sentry'>('sentry')
+  const [activeTab, setActiveTab] = useState<'vulns' | 'original' | 'corrected' | 'sentry'>('sentry')
 
   useEffect(() => {
     const init = async () => {
@@ -182,19 +353,16 @@ export default function UnifiedDashboard() {
     setScanSteps([])
     
     // Animate scan steps
-    const steps = [
-      'Initializing scan engine',
-      'Analyzing attack surface',
-      'Running vulnerability checks',
-      'Applying OWASP rulesets'
-    ]
+    const steps = scanMode === 'url' 
+      ? ['Resolving hostname', 'Reconnaissance phase', 'Scanning for security headers', 'Finalizing network report']
+      : ['Initializing scan engine', 'Analyzing syntax trees', 'Running vulnerability checks', 'Applying OWASP rulesets']
     
     for (const step of steps) {
       setScanSteps(p => [...p, step])
       await new Promise(r => setTimeout(r, 800))
     }
     
-    const {vulns: foundVulns} = analyzeCode(code)
+    const {vulns: foundVulns} = analyzeCode(code, scanMode, language)
     setVulns(foundVulns)
     
     await new Promise(r => setTimeout(r, 600))
@@ -211,14 +379,26 @@ export default function UnifiedDashboard() {
         await supabase.from('scans').insert({
           user_id: user.id,
           code,
-          language,
+          language: scanMode === 'url' ? 'URL' : language,
           vulnerabilities: foundVulns,
-          fixed_code: FIXED_CODE,
-          security_score: foundVulns.length===0?100:23,
+          fixed_code: scanMode === 'code' ? CODE_SAMPLES[language]?.fixed || code : '',
+          security_score: foundVulns.length === 0 ? 100 : Math.max(12, 100 - (foundVulns.length * 30)),
           status: 'completed'
         })
       }
     } catch(e) {}
+  }
+
+  const handleLanguageChange = (lang: string) => {
+    setLanguage(lang)
+    if (CODE_SAMPLES[lang]) {
+      setCode(CODE_SAMPLES[lang].vulnb)
+    }
+  }
+
+  const signOut = async () => {
+    await supabase.auth.signOut()
+    router.push('/')
   }
 
   const username = user?.email?.split('@')[0] || 'user'
@@ -348,22 +528,40 @@ export default function UnifiedDashboard() {
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push('/')}>
               <div className="brand-logo"><Shield className="w-5 h-5 text-white" /></div>
-              <div className="brand-text">VulnHunter</div>
+              <div className="brand-text">Cyber Sentry AI</div>
             </div>
             
             <div className="h-6 w-px bg-white/10 mx-2"></div>
             
             <nav className="flex items-center gap-6">
-              <span className="nav-link active"><Home className="w-4 h-4" /> Dashboard</span>
+              <span className="nav-link active cursor-pointer"><Home className="w-4 h-4" /> Dashboard</span>
             </nav>
           </div>
           
-          <div className="flex items-center gap-4">
-            <div className="user-pill">
+          <div className="flex items-center gap-4 relative">
+            <div className="user-pill" onClick={() => setProfileOpen(!profileOpen)}>
               <div className="user-avatar">{username[0]}</div>
               <span className="text-sm font-semibold pr-2">{username}</span>
               <ChevronDown className="w-4 h-4 text-white/40" />
             </div>
+
+            {profileOpen && (
+              <div className="absolute top-full right-0 mt-2 w-56 bg-[#1a1c22] border border-white/5 rounded-xl shadow-2xl z-[60] overflow-hidden fade-in">
+                <div className="px-4 py-3 border-b border-white/5 bg-white/5">
+                  <div className="text-xs text-white/40 mb-1">Signed in as</div>
+                  <div className="text-sm font-bold truncate">{user?.email}</div>
+                </div>
+                <button className="w-full px-4 py-3 text-sm text-left hover:bg-white/5 border-b border-white/5 flex items-center gap-3" onClick={() => setProfileOpen(false)}>
+                  <Home className="w-4 h-4 text-purple-400" /> Dashboard
+                </button>
+                <button className="w-full px-4 py-3 text-sm text-left hover:bg-white/5 border-b border-white/5 flex items-center gap-3" onClick={() => setProfileOpen(false)}>
+                  <Settings className="w-4 h-4 text-white/40" /> Settings & API Keys
+                </button>
+                <button className="w-full px-4 py-3 text-sm text-left hover:bg-red-500/10 text-red-400 flex items-center gap-3" onClick={signOut}>
+                  <LogOut className="w-4 h-4" /> Sign Out
+                </button>
+              </div>
+            )}
           </div>
         </header>
 
@@ -409,25 +607,53 @@ export default function UnifiedDashboard() {
               {/* SCAN SECTION */}
               <div className="scanner-box">
                 <div className="scanner-tabs">
-                  <div className="sc-tab active"><Code className="w-4 h-4"/> Paste Code</div>
-                  <div className="sc-tab inactive"><Globe className="w-4 h-4"/> Website URL</div>
+                  <div 
+                    className={`sc-tab ${scanMode === 'code' ? 'active' : 'inactive'}`} 
+                    onClick={() => setScanMode('code')}
+                  >
+                    <Code className="w-4 h-4"/> Paste Code
+                  </div>
+                  <div 
+                    className={`sc-tab ${scanMode === 'url' ? 'active' : 'inactive'}`} 
+                    onClick={() => setScanMode('url')}
+                  >
+                    <Globe className="w-4 h-4"/> Website URL
+                  </div>
                 </div>
                 <div className="sc-body">
-                  <label className="sc-label">Programming Language</label>
-                  <select className="sc-select" value={language} onChange={e=>setLanguage(e.target.value)}>
-                    <option>JavaScript</option>
-                    <option>Python</option>
-                    <option>TypeScript</option>
-                    <option>Java</option>
-                  </select>
-                  
-                  <label className="sc-label">Paste your code</label>
-                  <textarea 
-                    className="code-area" 
-                    value={code} 
-                    onChange={e=>setCode(e.target.value)}
-                    spellCheck={false}
-                  />
+                  {scanMode === 'code' ? (
+                    <>
+                      <label className="sc-label">Programming Language</label>
+                      <select 
+                        className="sc-select" 
+                        value={language} 
+                        onChange={e => handleLanguageChange(e.target.value)}
+                      >
+                        {Object.keys(CODE_SAMPLES).map(lang => (
+                          <option key={lang}>{lang}</option>
+                        ))}
+                      </select>
+                      
+                      <label className="sc-label">Paste your code</label>
+                      <textarea 
+                        className="code-area" 
+                        value={code} 
+                        onChange={e => setCode(e.target.value)}
+                        spellCheck={false}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <label className="sc-label">Website URL</label>
+                      <input 
+                        className="sc-select" 
+                        placeholder="https://example.com"
+                        value={code}
+                        onChange={e => setCode(e.target.value)}
+                      />
+                      <p className="text-white/20 text-xs mb-6">Enter the URL of the website you want to scan for network-level vulnerabilities.</p>
+                    </>
+                  )}
                   
                   <button className="scan-action-btn" onClick={startScan} disabled={!code.trim()}>
                     <Sparkles className="w-5 h-5" /> Start Security Scan
@@ -510,8 +736,26 @@ export default function UnifiedDashboard() {
                   </div>
                 </div>
                 
-                <div className="rep-btn-group">
-                  <button className="rep-btn-prm"><Download className="w-4 h-4"/> Export & Share</button>
+                <div className="rep-btn-group relative">
+                  <button 
+                    className="rep-btn-prm"
+                    onClick={() => setExportOpen(!exportOpen)}
+                  >
+                    <Download className="w-4 h-4"/> Export & Share
+                  </button>
+                  {exportOpen && (
+                    <div className="absolute top-full right-0 mt-2 w-48 bg-[#1a1c22] border border-white/5 rounded-xl shadow-2xl z-[60] overflow-hidden fade-in">
+                      <button className="w-full px-4 py-3 text-sm text-left hover:bg-white/5 border-b border-white/5 flex items-center gap-3" onClick={() => { navigator.clipboard.writeText(JSON.stringify(vulns, null, 2)); setExportOpen(false) }}>
+                        <Copy className="w-4 h-4" /> Copy JSON Report
+                      </button>
+                      <button className="w-full px-4 py-3 text-sm text-left hover:bg-white/5 border-b border-white/5 flex items-center gap-3" onClick={() => setExportOpen(false)}>
+                        <Download className="w-4 h-4" /> Download PDF
+                      </button>
+                      <button className="w-full px-4 py-3 text-sm text-left hover:bg-white/5 flex items-center gap-3" onClick={() => setExportOpen(false)}>
+                        <FileCode2 className="w-4 h-4" /> Open in VS Code
+                      </button>
+                    </div>
+                  )}
                   <button className="rep-btn-sec" onClick={() => setPhase('idle')}><RotateCcw className="w-4 h-4"/> New Scan</button>
                 </div>
               </div>
@@ -600,34 +844,72 @@ export default function UnifiedDashboard() {
 
                 {activeTab === 'corrected' && (
                   <div className="p-8 fade-in">
-                    <DiffViewer original={code} patched={FIXED_CODE} />
+                    <DiffViewer 
+                      original={code} 
+                      patched={scanMode === 'code' ? (CODE_SAMPLES[language]?.fixed || code) : 'Network hardening report generated.'} 
+                    />
                   </div>
                 )}
                 
                 {activeTab === 'original' && (
                   <div className="p-8 fade-in">
-                    <pre className="p-6 bg-[#08050a] rounded-xl border border-white/5 font-mono text-xs text-white/70 overflow-x-auto leading-relaxed max-h-[500px]">
-                      {code}
-                    </pre>
+                    <div className="relative group p-1 bg-white/5 rounded-xl border border-white/5 overflow-hidden">
+                      <div className="px-4 py-2 border-b border-white/5 bg-white/5 text-[10px] font-black text-white/40 uppercase tracking-[0.2em] flex justify-between items-center">
+                        <span>Original Source</span>
+                        <span className="text-purple-400/60 font-mono">{language}</span>
+                      </div>
+                      <pre className="p-6 bg-[#08050a] font-mono text-xs text-white/60 overflow-x-auto leading-relaxed max-h-[500px] scrollbar-thin scrollbar-thumb-white/10">
+                        {code}
+                      </pre>
+                    </div>
                   </div>
                 )}
                 
                 {activeTab === 'vulns' && (
-                  <div className="p-8 fade-in flex flex-col gap-4">
+                  <div className="p-8 fade-in flex flex-col gap-6">
                     {vulns.map((v, i) => (
-                      <div key={i} className="border border-red-500/20 bg-red-500/5 rounded-xl p-6">
-                        <div className="flex justify-between mb-4">
-                          <div className="font-bold text-lg">{v.name}</div>
-                          <div className="bg-red-500/20 text-red-400 px-3 py-1 rounded-full text-xs font-bold uppercase">{v.severity}</div>
+                      <div key={i} className="group relative border border-white/5 bg-[#16171d] hover:bg-[#1a1b21] hover:border-white/10 transition-all duration-300 rounded-2xl p-8 overflow-hidden">
+                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${v.severity === 'critical' ? 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.5)]'}`}></div>
+                        
+                        <div className="flex justify-between items-start mb-6">
+                          <div>
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${v.severity === 'critical' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-orange-500/10 text-orange-500 border border-orange-500/20'}`}>
+                                {v.severity}
+                              </span>
+                              <span className="text-white/20 text-[10px] font-mono tracking-widest uppercase">ID: V-00{i+1}</span>
+                            </div>
+                            <h3 className="text-xl font-bold tracking-tight text-white/90">{v.name}</h3>
+                          </div>
+                          <div className="text-white/20 font-mono text-[10px] leading-none uppercase tracking-widest py-1 border-b border-white/5">Detection Point: L{v.line}</div>
                         </div>
-                        <div className="text-white/60 text-sm mb-4 leading-relaxed">{v.description}</div>
-                        <div className="bg-black/30 p-4 rounded-lg font-mono text-xs text-white/80">
-                          <span className="text-emerald-400 mb-2 block">💡 Recommended Fix:</span>
-                          {v.fix}
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
+                          <div className="flex flex-col gap-3">
+                            <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Vulnerability Intel</span>
+                            <div className="text-white/60 text-sm leading-relaxed font-medium">
+                              {v.description}
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-col gap-3">
+                            <span className="text-[10px] font-black text-emerald-400/40 uppercase tracking-[0.2em]">Automated Patch Plan</span>
+                            <div className="bg-emerald-500/5 p-5 rounded-xl border border-emerald-500/10 text-sm italic text-emerald-400/80 font-medium">
+                              "{v.fix}"
+                            </div>
+                          </div>
                         </div>
                       </div>
                     ))}
-                    {vulns.length === 0 && <div className="text-white/40">No vulnerabilities found.</div>}
+                    {vulns.length === 0 && (
+                      <div className="flex flex-col items-center justify-center py-24 text-center">
+                        <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400 mb-6 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
+                          <CheckCircle className="w-8 h-8" />
+                        </div>
+                        <h3 className="text-2xl font-bold mb-2">Clean Bill of Health</h3>
+                        <p className="text-white/40 max-w-sm">No critical vulnerabilities detected in this scan. Your baseline security posture looks solid.</p>
+                      </div>
+                    )}
                   </div>
                 )}
 
