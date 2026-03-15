@@ -167,51 +167,28 @@ const FEATURES = [
   { icon:'⚡', text:'Auto-Patch Generation · CVSS Scoring' },
 ]
 function SplashScreen({onDone}:{onDone:()=>void}) {
-  const router = useRouter()
-  const [stage, setStage] = useState(0)
   const [fadingOut, setFadingOut] = useState(false)
+  
   useEffect(() => {
+    // Shorter sequence: Logo only, then fade out
     const ts = [
-      setTimeout(()=>setStage(1), 1000),
-      setTimeout(()=>setStage(2), 2000),
-      setTimeout(()=>setStage(3), 2600),
-      setTimeout(()=>setStage(4), 3200),
-      setTimeout(()=>setStage(5), 4000),
-      setTimeout(()=>setFadingOut(true), 5400),
-      setTimeout(onDone, 6200),
+      setTimeout(()=>setFadingOut(true), 1800),
+      setTimeout(onDone, 2400),
     ]
     return () => ts.forEach(clearTimeout)
-  }, [])
-  const s = (n:number) => stage >= n
+  }, [onDone])
+
   return (
     <div className={`splash${fadingOut?' fade':''}`}>
       <SplashBG/>
       <div className="sc">
-        {/* Stage 0: Logo */}
         <div className="sring"><span className="sicon">🛡</span></div>
         <div className="sname">Cyber<span style={{color:'#00ff88'}}>Sentry</span>
           <span style={{fontSize:'13px',marginLeft:'10px',background:'rgba(0,255,136,0.1)',color:'#00ff88',padding:'3px 10px',borderRadius:'20px',border:'1px solid rgba(0,255,136,0.28)',fontWeight:700,verticalAlign:'middle',fontFamily:"'JetBrains Mono',monospace"}}>AI</span>
         </div>
-        {/* Stage 1: Tagline */}
-        <div className={`stag splash-stage${s(1)?' splash-show':''}`}>Agentic Security Intelligence Platform</div>
-        {/* Stage 2-4: Features one by one */}
-        <div className="splash-features">
-          {FEATURES.map((f,i) => (
-            <div key={i} className={`splash-feat${s(i+2)?' splash-show':''}`}>
-              <span className="sfeat-icon">{f.icon}</span>
-              <span>{f.text}</span>
-            </div>
-          ))}
-        </div>
-        {/* Stage 5: CTA Buttons */}
-        <div className={`splash-ctas splash-stage${s(5)?' splash-show':''}`}>
-          <button className="splash-btn-p" onClick={()=>router.push('/login')}>🛡 Create Account</button>
-          <button className="splash-btn-o" onClick={()=>router.push('/login')}>Sign In →</button>
-        </div>
-        {/* Progress bar always visible */}
-        <div className="sbar">
-          <div className="strack"><div className="sfill" style={{animationDuration:'5.2s'}}/></div>
-          <div className="spct">{['Initializing…','Loading AI…','Ready.','Mapping threats…','All systems go.','Enter →'][Math.min(stage,5)]}</div>
+        <div className="sbar" style={{marginTop:'20px'}}>
+          <div className="strack"><div className="sfill" style={{animationDuration:'1.8s'}}/></div>
+          <div className="spct">Initializing Base Protocols...</div>
         </div>
       </div>
     </div>
@@ -393,11 +370,18 @@ export default function Home() {
   const [text,setText]=useState('')
   const [charIdx,setCharIdx]=useState(0)
   const [done,setDone]=useState<string[]>([])
+  const [buildPhase, setBuildPhase] = useState(0)
 
-  const handleSplashDone = () => { setSplash(false); setVisible(true) }
+  const handleSplashDone = () => { 
+    setSplash(false); setVisible(true)
+    // Staggered interface build sequence
+    setTimeout(() => setBuildPhase(1), 100)  // Nav + Hero Text
+    setTimeout(() => setBuildPhase(2), 600)  // Terminal
+    setTimeout(() => setBuildPhase(3), 1200) // Stats & Cards
+  }
 
   useEffect(()=>{
-    if(splash)return
+    if(splash || buildPhase < 2) return // Don't start typing until terminal is visible
     const line=TYPING[lineIdx]
     if(charIdx<line.length){const t=setTimeout(()=>{setText(p=>p+line[charIdx]);setCharIdx(c=>c+1)},26);return()=>clearTimeout(t)}
     else{const t=setTimeout(()=>{setDone(p=>[...p.slice(-5),line]);setText('');setCharIdx(0);setLineIdx(i=>(i+1)%TYPING.length)},900);return()=>clearTimeout(t)}
@@ -566,7 +550,12 @@ export default function Home() {
       {!splash&&<HeroBG/>}
 
       {/* NAV */}
-      <nav style={{opacity:visible?1:0,transition:'opacity 0.9s ease'}}>
+      <nav style={{
+        opacity: visible ? 1 : 0, 
+        transform: buildPhase >= 1 ? 'translateY(0)' : 'translateY(-20px)',
+        transition: 'opacity 0.6s ease, transform 0.6s cubic-bezier(0.34,1.3,0.64,1)',
+        pointerEvents: visible ? 'auto' : 'none'
+      }}>
         <div className="nlogo" onClick={()=>router.push('/')}>
           <div className="nico">🛡</div>
           <span style={{fontSize:'17px',fontWeight:900,letterSpacing:'-0.02em'}}>Cyber<span style={{color:'#00ff88'}}>Sentry</span></span>
@@ -607,17 +596,28 @@ export default function Home() {
 
         {/* HERO */}
         <div className="hero">
-          <div className="eyebrow">
-            <div className="pdot"/>
-            <span style={{fontSize:'12px',color:'#00ff88',fontWeight:700,fontFamily:"'JetBrains Mono',monospace"}}>Agentic AI · Chain-of-Thought · OWASP Top 10</span>
+          <div style={{
+            opacity: buildPhase >= 1 ? 1 : 0,
+            transform: buildPhase >= 1 ? 'translateY(0)' : 'translateY(20px)',
+            transition: 'opacity 0.6s ease 0.1s, transform 0.6s cubic-bezier(0.34,1.3,0.64,1) 0.1s'
+          }}>
+            <div className="eyebrow" style={{animation:'none'}}>
+              <div className="pdot"/>
+              <span style={{fontSize:'12px',color:'#00ff88',fontWeight:700,fontFamily:"'JetBrains Mono',monospace"}}>Agentic AI · Chain-of-Thought · OWASP Top 10</span>
+            </div>
+            <h1 style={{animation:'none'}}>Your Code's<br/><span className="grad"><Glitch text="AI Security Guard"/></span></h1>
+            <p className="hsub" style={{animation:'none',margin:'0 auto 38px'}}>An autonomous agent that thinks like a<br/>senior security engineer — in real time.</p>
+            <div className="ctas" style={{animation:'none'}}>
+              <button className="btn-p" onClick={()=>router.push('/login')}>🛡 Scan My Code Free</button>
+              <button className="btn-o" onClick={()=>router.push('/scan')}>👁 Live Demo</button>
+            </div>
           </div>
-          <h1>Your Code's<br/><span className="grad"><Glitch text="AI Security Guard"/></span></h1>
-          <p className="hsub">An autonomous agent that thinks like a<br/>senior security engineer — in real time.</p>
-          <div className="ctas">
-            <button className="btn-p" onClick={()=>router.push('/login')}>🛡 Scan My Code Free</button>
-            <button className="btn-o" onClick={()=>router.push('/scan')}>👁 Live Demo</button>
-          </div>
-          <div className="twrap">
+          
+          <div className="twrap" style={{
+            opacity: buildPhase >= 2 ? 1 : 0,
+            transform: buildPhase >= 2 ? 'translateY(0)' : 'translateY(30px)',
+            transition: 'opacity 0.7s ease 0.2s, transform 0.7s cubic-bezier(0.34,1.3,0.64,1) 0.2s'
+          }}>
             <div className="terminal">
               <div className="tbar">
                 <div className="dot" style={{background:'#ff5f56'}}/><div className="dot" style={{background:'#ffbd2e'}}/><div className="dot" style={{background:'#27c93f'}}/>
@@ -632,7 +632,11 @@ export default function Home() {
         </div>
 
         {/* STATS */}
-        <div className="stats" style={{opacity: visible ? 1 : 0, transition: 'opacity 0.6s ease 0.2s'}}>
+        <div className="stats" style={{
+          opacity: buildPhase >= 3 ? 1 : 0, 
+          transform: buildPhase >= 3 ? 'translateY(0)' : 'translateY(40px)',
+          transition: 'opacity 0.7s ease, transform 0.7s cubic-bezier(0.34,1.3,0.64,1)'
+        }}>
           {[
             {num:10,   suffix:'',      label:'OWASP',   sub:'Top 10 Covered',    bar:100},
             {num:3,    suffix:'-Step', label:'Agentic', sub:'Reasoning Loop',    bar:75},
@@ -644,7 +648,10 @@ export default function Home() {
         </div>
 
         {/* HOW IT WORKS */}
-        <div className="section">
+        <div className="section" style={{
+          opacity: buildPhase >= 3 ? 1 : 0,
+          transition: 'opacity 0.8s ease'
+        }}>
           <Reveal><p className="sec-tag">The Agent Loop</p></Reveal>
           <Reveal delay={0.1}><h2 className="sec-title">How CyberSentry <Glitch text="Thinks"/></h2></Reveal>
           <Reveal delay={0.15}><p className="sec-sub">Watch AI reason through every vulnerability — not just detect, but explain and patch</p></Reveal>
