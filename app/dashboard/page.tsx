@@ -159,7 +159,7 @@ export default function UnifiedDashboard() {
       }
 
       // Fetch actual stats from history
-      const { data } = await supabase.from('scans').select('*').eq('user_id', user.id)
+      const { data } = await supabase.from('scans').select('*').eq('user_id', user ? user.id : 'promo-id')
       if (data) {
         let total = data.length
         let vCount = 0
