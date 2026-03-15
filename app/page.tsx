@@ -12,6 +12,99 @@ const TYPING = [
   "✅ Security score: 4 → 96 | All clear 🎉",
 ]
 
+/* ── ANIMATED COUNTER ── */
+function AnimatedCounter({ target, suffix = '', prefix = '' }: { target: number | string; suffix?: string; prefix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const [val, setVal] = useState<string | number>(0)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current; if (!el) return
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect() } }, { threshold: 0.3 })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (!visible) return
+    if (typeof target === 'string') { setVal(target); return }
+    let start = 0
+    const duration = 1800
+    const step = 16
+    const steps = duration / step
+    const inc = target / steps
+    let cur = 0
+    const timer = setInterval(() => {
+      cur += inc
+      if (cur >= target) { setVal(target); clearInterval(timer) }
+      else setVal(Math.floor(cur))
+    }, step)
+    return () => clearInterval(timer)
+  }, [visible, target])
+
+  return <span ref={ref} style={{ display: 'inline-block', transition: 'transform 0.3s', transform: visible ? 'scale(1)' : 'scale(0.8)' }}>{prefix}{val}{suffix}</span>
+}
+
+/* ── STAGGERED INFO SPANS ── */
+function StaggeredInfo({ items, baseDelay = 0 }: { items: { icon?: string; text: string; color?: string }[]; baseDelay?: number }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const el = ref.current; if (!el) return
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect() } }, { threshold: 0.1 })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+  return (
+    <div ref={ref} style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
+      {items.map((item, i) => (
+        <span key={i} style={{
+          display: 'inline-flex', alignItems: 'center', gap: '6px',
+          padding: '5px 14px', borderRadius: '100px', fontSize: '12px',
+          fontFamily: "'JetBrains Mono',monospace", fontWeight: 600,
+          background: item.color ? `rgba(${item.color},0.07)` : 'rgba(0,255,136,0.06)',
+          border: `1px solid ${item.color ? `rgba(${item.color},0.22)` : 'rgba(0,255,136,0.18)'}`,
+          color: item.color ? `rgb(${item.color})` : '#00ff88',
+          opacity: visible ? 1 : 0,
+          transform: visible ? 'translateY(0) scale(1)' : 'translateY(12px) scale(0.92)',
+          transition: `opacity 0.5s ease ${baseDelay + i * 0.1}s, transform 0.5s cubic-bezier(0.34,1.3,0.64,1) ${baseDelay + i * 0.1}s`,
+        }}>
+          {item.icon && <span>{item.icon}</span>}
+          {item.text}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+/* ── SEQUENTIAL INFO LINES ── */
+function InfoLines({ lines, baseDelay = 0 }: { lines: { prefix?: string; content: string; color?: string }[]; baseDelay?: number }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const el = ref.current; if (!el) return
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect() } }, { threshold: 0.1 })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+  return (
+    <div ref={ref} style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: '12px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      {lines.map((line, i) => (
+        <div key={i} style={{
+          opacity: visible ? 1 : 0,
+          transform: visible ? 'translateX(0)' : 'translateX(-16px)',
+          transition: `opacity 0.45s ease ${baseDelay + i * 0.12}s, transform 0.45s ease ${baseDelay + i * 0.12}s`,
+          color: line.color || 'rgba(255,255,255,0.45)',
+          padding: '2px 0',
+        }}>
+          {line.prefix && <span style={{ color: '#00ff88', marginRight: '8px' }}>{line.prefix}</span>}
+          {line.content}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 /* ── SPLASH BG: stars + cyber grid ── */
 function SplashBG() {
   const ref = useRef<HTMLCanvasElement>(null)
@@ -235,6 +328,34 @@ function HeroBG() {
   return <canvas ref={ref} style={{position:'fixed',inset:0,width:'100%',height:'100%',pointerEvents:'none',zIndex:1}}/>
 }
 
+/* ── STAT CARD with animated counter bar ── */
+function StatCard({ item, delay = 0 }: { item: { num: number | string; suffix?: string; label: string; sub: string; bar: number }; delay?: number }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const el = ref.current; if (!el) return
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect() } }, { threshold: 0.3 })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+  return (
+    <div ref={ref} className="stat" style={{
+      opacity: visible ? 1 : 0,
+      transform: visible ? 'translateY(0)' : 'translateY(20px)',
+      transition: `opacity 0.6s ease ${delay}s, transform 0.6s cubic-bezier(0.34,1.2,0.64,1) ${delay}s`,
+    }}>
+      <div className="sn">
+        <AnimatedCounter target={item.num} suffix={item.suffix || ''}/>
+      </div>
+      <div style={{fontSize:'11px',color:'rgba(255,255,255,0.5)',fontFamily:"'JetBrains Mono',monospace",marginBottom:'2px',textTransform:'uppercase',letterSpacing:'0.1em'}}>{item.label}</div>
+      <div className="sl">{item.sub}</div>
+      <div className="stat-bar">
+        <div className="stat-bar-fill" style={{width: visible ? `${item.bar}%` : '0%', transition: `width 1.8s cubic-bezier(0.4,0,0.2,1) ${delay + 0.3}s`}}/>
+      </div>
+    </div>
+  )
+}
+
 /* ── GLITCH TEXT ── */
 function Glitch({text}:{text:string}) {
   const [g,setG]=useState(false)
@@ -307,6 +428,12 @@ export default function Home() {
         @keyframes featIn{0%{opacity:0;transform:translateX(-22px)}100%{opacity:1;transform:translateX(0)}}
         @keyframes ctaIn{0%{opacity:0;transform:translateY(16px) scale(0.95)}100%{opacity:1;transform:translateY(0) scale(1)}}
         @keyframes haloSpin{to{transform:rotate(360deg)}}
+        @keyframes popIn{0%{opacity:0;transform:scale(0.5) translateY(20px)}70%{transform:scale(1.08) translateY(-4px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+        @keyframes slideInUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes slideInLeft{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes numberFlip{0%{transform:translateY(-100%);opacity:0}100%{transform:translateY(0);opacity:1}}
+        @keyframes infoBarLoad{from{width:0%}to{width:var(--w,100%)}}
+        @keyframes pulse-ring{0%{transform:scale(0.9);opacity:1}100%{transform:scale(1.5);opacity:0}}
 
         /* SPLASH */
         .splash{position:fixed;inset:0;z-index:9999;background:#020510;display:flex;align-items:center;justify-content:center;overflow:hidden;transition:opacity 1s ease;}
@@ -377,10 +504,14 @@ export default function Home() {
         .cursor{display:inline-block;width:8px;height:14px;background:#00ff88;vertical-align:middle;margin-left:2px;animation:blink 1s ease infinite;}
 
         .stats{position:relative;z-index:10;padding:44px 52px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;max-width:1000px;margin:0 auto;border-top:1px solid rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.04);}
-        .stat{text-align:center;padding:16px;border-radius:16px;background:rgba(255,255,255,0.012);border:1px solid rgba(255,255,255,0.05);transition:all 0.3s;}
-        .stat:hover{border-color:rgba(0,255,136,0.22);background:rgba(0,255,136,0.03);transform:translateY(-3px);}
-        .sn{font-size:32px;font-weight:900;color:#00ff88;letter-spacing:-0.03em;margin-bottom:4px;}
-        .sl{font-size:12px;color:rgba(255,255,255,0.26);font-family:'JetBrains Mono',monospace;}
+        .stat{text-align:center;padding:20px 16px;border-radius:16px;background:rgba(255,255,255,0.012);border:1px solid rgba(255,255,255,0.05);transition:all 0.3s;position:relative;overflow:hidden;}
+        .stat::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:60%;height:1px;background:linear-gradient(90deg,transparent,rgba(0,255,136,0.35),transparent);}
+        .stat:hover{border-color:rgba(0,255,136,0.22);background:rgba(0,255,136,0.03);transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,0.5),0 0 30px rgba(0,255,136,0.04);}
+        .sn{font-size:34px;font-weight:900;color:#00ff88;letter-spacing:-0.03em;margin-bottom:6px;font-variant-numeric:tabular-nums;}
+        .sl{font-size:11px;color:rgba(255,255,255,0.26);font-family:'JetBrains Mono',monospace;}
+        .stat-bar{height:2px;background:rgba(255,255,255,0.04);border-radius:2px;margin-top:12px;overflow:hidden;}
+        .stat-bar-fill{height:100%;background:linear-gradient(90deg,#00ff88,#00ccff);border-radius:2px;width:0%;transition:width 1.8s cubic-bezier(0.4,0,0.2,1);}
+        .stat-bar-fill.active{width:100%;}
 
         .section{position:relative;z-index:10;padding:96px 52px;text-align:center;}
         .sec-tag{font-size:11px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#00ff88;margin-bottom:14px;font-family:'JetBrains Mono',monospace;}
@@ -501,26 +632,40 @@ export default function Home() {
         </div>
 
         {/* STATS */}
-        <Reveal>
-          <div className="stats">
-            {[{n:'OWASP',l:'Top 10 Covered'},{n:'3-Step',l:'Agentic Loop'},{n:'4→96',l:'Score Delta'},{n:'<5s',l:'Scan Speed'}].map((s,i)=>(
-              <div className="stat" key={i}><div className="sn">{s.n}</div><div className="sl">{s.l}</div></div>
-            ))}
-          </div>
-        </Reveal>
+        <div className="stats" style={{opacity: visible ? 1 : 0, transition: 'opacity 0.6s ease 0.2s'}}>
+          {[
+            {num:10,   suffix:'',      label:'OWASP',   sub:'Top 10 Covered',    bar:100},
+            {num:3,    suffix:'-Step', label:'Agentic', sub:'Reasoning Loop',    bar:75},
+            {num:96,   suffix:'',      label:'Score',   sub:'Security Rating',   bar:96},
+            {num:4.2,  suffix:'s',     label:'Speed',   sub:'Avg Scan Time',     bar:60},
+          ].map((s,i)=>(
+            <StatCard key={i} item={s} delay={i * 0.12}/>
+          ))}
+        </div>
 
         {/* HOW IT WORKS */}
         <div className="section">
           <Reveal><p className="sec-tag">The Agent Loop</p></Reveal>
           <Reveal delay={0.1}><h2 className="sec-title">How CyberSentry <Glitch text="Thinks"/></h2></Reveal>
           <Reveal delay={0.15}><p className="sec-sub">Watch AI reason through every vulnerability — not just detect, but explain and patch</p></Reveal>
+          <Reveal delay={0.2}>
+            <div style={{maxWidth:'640px',margin:'0 auto 40px',padding:'0 4px'}}>
+              <InfoLines baseDelay={0.3} lines={[
+                {prefix:'[INIT]',    content:'Loading vulnerability pattern database...'},
+                {prefix:'[SCAN]',    content:'Running OWASP Top 10 static analysis checks...', color:'rgba(255,255,255,0.5)'},
+                {prefix:'[REASON]',  content:'Chain-of-thought: evaluating injection vectors...', color:'rgba(255,200,0,0.7)'},
+                {prefix:'[PATCH]',   content:'Generating production-ready secure code patches...', color:'rgba(0,200,255,0.7)'},
+                {prefix:'[VERIFY]',  content:'Re-scanning patched codebase... ✅ All clear', color:'rgba(0,255,136,0.85)'},
+              ]}/>
+            </div>
+          </Reveal>
           <div className="cards">
             {[
               {i:'🔍',n:'01',t:'Analyze & Reason',d:'Scans full codebase, builds vulnerability map via chain-of-thought — every decision visible in real time.'},
               {i:'⚡',n:'02',t:'Generate Patches',d:'Writes production-ready secure code with parameterized queries, env variables, path validation, explaining each change.'},
               {i:'🔒',n:'03',t:'Verify & Score',d:'Re-scans patched code to confirm all fixes, issues an industry-standard CVSS security score showing exact improvement.'},
             ].map((c,i)=>(
-              <Reveal key={i} delay={i*0.12}>
+              <Reveal key={i} delay={i*0.15}>
                 <div className="card">
                   <span className="cnum">{c.n}</span>
                   <div className="cico">{c.i}</div>
@@ -538,13 +683,20 @@ export default function Home() {
           <Reveal delay={0.1}><h2 className="sec-title">What We Find</h2></Reveal>
           <Reveal delay={0.15}><p className="sec-sub">Full OWASP Top 10 · 9 languages · CVSS scoring</p></Reveal>
           <Reveal delay={0.2}>
-            <div className="vwrap">
-              {[{n:'SQL Injection',s:'c'},{n:'XSS',s:'h'},{n:'Path Traversal',s:'h'},{n:'Hardcoded Secrets',s:'h'},{n:'Command Injection',s:'c'},{n:'CSRF',s:'m'},{n:'Broken Auth',s:'c'},{n:'Insecure Deserialization',s:'h'},{n:'Security Misconfiguration',s:'m'},{n:'Sensitive Data Exposure',s:'h'}].map((v,i)=>(
-                <span key={i} className={`vb v${v.s}`}>{v.n}</span>
-              ))}
-            </div>
+            <StaggeredInfo baseDelay={0.1} items={[
+              {icon:'🔴', text:'SQL Injection',               color:'255,68,102'},
+              {icon:'🔴', text:'Command Injection',           color:'255,68,102'},
+              {icon:'🔴', text:'Broken Auth',                 color:'255,68,102'},
+              {icon:'🟠', text:'XSS',                        color:'255,149,0'},
+              {icon:'🟠', text:'Path Traversal',             color:'255,149,0'},
+              {icon:'🟠', text:'Hardcoded Secrets',          color:'255,149,0'},
+              {icon:'🟠', text:'Insecure Deserialization',   color:'255,149,0'},
+              {icon:'🟠', text:'Sensitive Data Exposure',    color:'255,149,0'},
+              {icon:'🟡', text:'CSRF',                       color:'255,200,0'},
+              {icon:'🟡', text:'Security Misconfiguration',  color:'255,200,0'},
+            ]}/>
           </Reveal>
-          <Reveal delay={0.25}>
+          <Reveal delay={0.3}>
             <p className="sec-tag" style={{marginBottom:'22px'}}>CVSS Industry Scoring</p>
             <div className="cgrid">
               {[
