@@ -382,10 +382,31 @@ export default function Home() {
 
   useEffect(()=>{
     if(splash || buildPhase < 2) return // Don't start typing until terminal is visible
+    
+    // Ensure lineIdx doesn't exceed array
+    if (lineIdx >= TYPING.length) {
+      setLineIdx(0);
+      setDone([]);
+      return;
+    }
+    
     const line=TYPING[lineIdx]
-    if(charIdx<line.length){const t=setTimeout(()=>{setText(p=>p+line[charIdx]);setCharIdx(c=>c+1)},26);return()=>clearTimeout(t)}
-    else{const t=setTimeout(()=>{setDone(p=>[...p.slice(-5),line]);setText('');setCharIdx(0);setLineIdx(i=>(i+1)%TYPING.length)},900);return()=>clearTimeout(t)}
-  },[charIdx,lineIdx,splash])
+    if(charIdx<line.length){
+      const t=setTimeout(()=>{
+        setText(p=>p+line[charIdx]);
+        setCharIdx(c=>c+1)
+      },26);
+      return()=>clearTimeout(t)
+    } else {
+      const t=setTimeout(()=>{
+        setDone(p=>[...p.slice(-4),line]);
+        setText('');
+        setCharIdx(0);
+        setLineIdx(i=>i+1)
+      },900);
+      return()=>clearTimeout(t)
+    }
+  },[charIdx,lineIdx,splash,buildPhase])
 
   return (
     <>
