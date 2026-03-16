@@ -210,6 +210,34 @@ export default function Dashboard() {
   const [thoughtSteps, setThoughtSteps] = useState(THOUGHT_TRACE.map(t => ({ ...t, status: 'pending' as string })))
   const [typingText, setTypingText] = useState('')
 
+  const [rbRunning, setRbRunning] = useState(false)
+  const [rbEvents, setRbEvents] = useState<{team:string;msg:string;time:string}[]>([])
+  const rbFeedRef = useRef<HTMLDivElement>(null)
+
+  const runRB = async () => {
+    setRbRunning(true); setRbEvents([])
+    const events = [
+      {team:'system',msg:'══════ BATTLE INITIATED ══════'},
+      {team:'red',msg:'Scanning target for SQL injection vulnerability...'},
+      {team:'red',msg:"Payload: ' OR '1'='1' -- → POST /api/users/login"},
+      {team:'red',msg:'✗ Authentication bypass CONFIRMED — logged in as admin'},
+      {team:'red',msg:'Dumping student DB... 8,400 records retrieved'},
+      {team:'blue',msg:'THREAT DETECTED — SQL injection in users/route.ts:47'},
+      {team:'blue',msg:'Analyzing attack vector — string concatenation in SQL query'},
+      {team:'blue',msg:'Generating parameterized query patch...'},
+      {team:'blue',msg:'Patch deployed to all 3 affected files'},
+      {team:'red',msg:"Retrying: ' UNION SELECT * FROM users --"},
+      {team:'red',msg:'ERROR: Prepared statement rejected injection — FAILED'},
+      {team:'blue',msg:'Attack blocked ✓ — parameterized query neutralized injection'},
+      {team:'system',msg:'══════ BLUE TEAM WINS — SQL INJECTION NEUTRALIZED ══════'},
+    ]
+    for (const ev of events) {
+      await new Promise(r => setTimeout(r, 520))
+      setRbEvents(p => [...p, { ...ev, time: new Date().toLocaleTimeString() }])
+    }
+    setRbRunning(false)
+  }
+
   const [stressIdx, setStressIdx] = useState(0)
   const [stressRunning, setStressRunning] = useState(false)
   const [stressLog, setStressLog] = useState<string[]>([])
@@ -238,6 +266,7 @@ export default function Dashboard() {
   useEffect(() => { logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: 'smooth' }) }, [scanLog])
   useEffect(() => { agentLogRef.current?.scrollTo({ top: agentLogRef.current.scrollHeight, behavior: 'smooth' }) }, [agentLog])
   useEffect(() => { obsRef.current?.scrollTo({ top: obsRef.current.scrollHeight, behavior: 'smooth' }) }, [obsLog])
+  useEffect(() => { rbFeedRef.current?.scrollTo({ top: rbFeedRef.current.scrollHeight, behavior: 'smooth' }) }, [rbEvents])
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [chatMsgs, typing])
   useEffect(() => { stressRef.current?.scrollTo({ top: stressRef.current.scrollHeight, behavior: 'smooth' }) }, [stressLog])
 
@@ -932,7 +961,7 @@ export default function Dashboard() {
                   </div>
                   <div className="rep-company">{DEMO.company}</div>
                   <div className="rep-meta">
-                    {DEMO.industry} · {DEMO.scannedFiles} files scanned · Score: <span style={{color:'#ff4444',fontWeight:700}}>23/100</span> · {DEMO.duration}ms scan time
+                    {DEMO.industry} · {DEMO.scanned} files scanned · Score: <span style={{color:'#ff4444',fontWeight:700}}>23/100</span> · {DEMO.duration}ms scan time
                   </div>
                   <div className="rep-badges">
                     {[
@@ -1212,49 +1241,35 @@ export default function Dashboard() {
                     <div className="section-title">⚔️ Red Team vs Blue Team
                       <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:9,color:'var(--dim)',background:'rgba(255,255,255,0.04)',padding:'2px 8px',borderRadius:4}}>AI WAR ROOM</span>
                     </div>
-                    <button className="run-btn run-btn-red" disabled={false} onClick={async()=>{
-                      const setRb = (evts: any[]) => { /* managed inline */ }
-                      const events = [
-                        {team:'system',msg:'══════ BATTLE INITIATED ══════',type:'info'},
-                        {team:'red',msg:'Scanning target for SQL injection...'},
-                        {team:'red',msg:"Payload: ' OR '1'='1' -- sent to /api/users/login"},
-                        {team:'red',msg:'✗ Authentication bypass CONFIRMED — logged in as admin'},
-                        {team:'red',msg:'Dumping student DB... 8,400 records retrieved'},
-                        {team:'blue',msg:'THREAT DETECTED — SQL injection in users/route.ts:47'},
-                        {team:'blue',msg:'Generating parameterized query patch...'},
-                        {team:'blue',msg:'Patch deployed to all 3 affected files'},
-                        {team:'red',msg:"Retrying: ' UNION SELECT * FROM users --"},
-                        {team:'red',msg:'ERROR: Prepared statement rejected injection — FAILED'},
-                        {team:'blue',msg:'Attack blocked ✓ — parameterized query neutralized injection'},
-                        {team:'system',msg:'══════ BLUE TEAM WINS ══════',type:'success'},
-                      ]
-                      // We use a local state trick
-                      const el = document.getElementById('rb-feed-inner')
-                      if (!el) return
-                      el.innerHTML = ''
-                      for (const ev of events) {
-                        await new Promise(r=>setTimeout(r,520))
-                        const tc = {red:'#ff4444',blue:'var(--cyan)',system:'var(--green)'}
-                        const tb = {red:'rgba(255,68,68,0.08)',blue:'rgba(0,229,255,0.06)',system:'rgba(0,255,136,0.06)'}
-                        const div = document.createElement('div')
-                        const team = ev.team as 'red'|'blue'|'system'
-                        div.style.cssText = `padding:9px 13px;border-radius:7px;border-left:3px solid ${(tc as any)[team]};background:${(tb as any)[team]};animation:slideIn 0.25s ease;margin-bottom:7px`
-                        div.innerHTML = `<div style="display:flex;align-items:center;gap:9px;margin-bottom:4px"><span style="color:${(tc as any)[team]};font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:800">[${team.toUpperCase()}]</span><span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--dim)">${new Date().toLocaleTimeString()}</span></div><div style="font-size:12px;color:${team==='red'?'#fca5a5':team==='blue'?'#bae6fd':'var(--green)'};line-height:1.5">${ev.msg}</div>`
-                        el.appendChild(div)
-                        el.scrollTop = el.scrollHeight
-                      }
-                    }}>⚔️ Start Battle</button>
+                    <button className="run-btn run-btn-red" onClick={runRB} disabled={rbRunning}>
+                      {rbRunning ? <><div className="spin" style={{borderTopColor:'#ff6b6b'}}/>Battle Active</> : '⚔️ Start Battle'}
+                    </button>
                   </div>
                   <div className="rb-teams">
                     <div className="rb-team rb-red-side">🎯 RED TEAM — Attacker AI</div>
                     <div className="rb-divider-bar"/>
                     <div className="rb-team rb-blue-side">🛡️ BLUE TEAM — Defender AI</div>
                   </div>
-                  <div id="rb-feed-inner" className="rb-feed">
-                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100%',gap:12,color:'var(--dim)',textAlign:'center'}}>
-                      <div style={{fontSize:32}}>⚔️</div>
-                      <p style={{fontFamily:'JetBrains Mono,monospace',fontSize:11}}>Click "Start Battle" to watch AI Attacker vs AI Defender</p>
-                    </div>
+                  <div className="rb-feed" ref={rbFeedRef}>
+                    {rbEvents.length === 0 ? (
+                      <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100%',gap:12,color:'var(--dim)',textAlign:'center'}}>
+                        <div style={{fontSize:32}}>⚔️</div>
+                        <p style={{fontFamily:'JetBrains Mono,monospace',fontSize:11}}>Click "Start Battle" to watch AI Attacker vs AI Defender</p>
+                      </div>
+                    ) : rbEvents.map((ev, i) => {
+                      const tc: Record<string,string> = {red:'#ff4444',blue:'var(--cyan)',system:'var(--green)'}
+                      const tb: Record<string,string> = {red:'rgba(255,68,68,0.08)',blue:'rgba(0,229,255,0.06)',system:'rgba(0,255,136,0.06)'}
+                      return (
+                        <div key={i} className="rb-event" style={{background:tb[ev.team]||'',borderLeftColor:tc[ev.team]||'var(--green)'}}>
+                          <div className="rb-event-top">
+                            <span style={{color:tc[ev.team],fontFamily:'JetBrains Mono,monospace',fontSize:9,fontWeight:800}}>[{ev.team.toUpperCase()}]</span>
+                            <span className="rb-event-time">{ev.time}</span>
+                          </div>
+                          <div className="rb-event-msg" style={{color:ev.team==='red'?'#fca5a5':ev.team==='blue'?'#bae6fd':'var(--green)'}}>{ev.msg}</div>
+                        </div>
+                      )
+                    })}
+                    {rbRunning && <div style={{display:'flex',alignItems:'center',gap:8,padding:'4px 0',fontFamily:'JetBrains Mono,monospace',fontSize:11,color:'var(--dim)'}}><div className="spin"/>Processing...</div>}
                   </div>
                 </div>
               )}
@@ -1589,7 +1604,7 @@ export default function Dashboard() {
                             </div>
                             <span className="radar-bar-num" style={{color:s.color}}>{s.score}</span>
                           </div>
-                          <div className="radar-bar-desc">{s.desc}</div>
+                          <div className="radar-bar-desc">{(s as any).desc}</div>
                         </div>
                       ))}
                       <div style={{padding:'13px 0',borderTop:'1px solid rgba(255,255,255,0.07)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
