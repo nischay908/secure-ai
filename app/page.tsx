@@ -90,7 +90,7 @@ export default function LandingPage() {
   const TESTIMONIALS = [
     { company: 'FinPay Systems', role: 'CTO', name: 'Sarah Chen', quote: 'CyberSentry found 3 SQL injection vulnerabilities in our payment flow that our manual code review missed for 6 months. The auto-patch feature saved us 2 days of engineering work.', logo: '💳' },
     { company: 'HealthTrack', role: 'Head of Engineering', name: 'Raj Patel', quote: 'As a HIPAA-regulated company, we needed continuous security monitoring. CyberSentry monitors every commit and generates HIPAA compliance reports automatically.', logo: '🏥' },
-    { company: 'Shopify Clone', role: 'Lead Developer', name: 'Alex Morgan', quote: 'We had hardcoded API keys in 4 files committed to git. CyberSentry found them all in the first scan, explained the risk, and told us exactly how to fix each one.', logo: '🛍️' },
+    { company: 'CloudCart', role: 'Lead Developer', name: 'Alex Morgan', quote: 'We had hardcoded API keys in 4 files committed to git. CyberSentry found them all in the first scan, explained the risk, and told us exactly how to fix each one.', logo: '🛍️' },
   ]
 
   const VULNS_DETECTED = [
@@ -435,7 +435,7 @@ export default function LandingPage() {
             <span style={{ fontSize: 20 }}>🛡️</span>
             <span style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 15 }}>CyberSentry AI</span>
           </div>
-          <span className="footer-copy">© 2024 CyberSentry AI. All rights reserved.</span>
+          <span className="footer-copy">© 2026 CyberSentry AI. All rights reserved.</span>
           <div className="footer-links">
             <span className="footer-link">Privacy</span>
             <span className="footer-link">Terms</span>

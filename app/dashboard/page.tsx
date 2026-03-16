@@ -1,7 +1,6 @@
 'use client'
 // app/dashboard/page.tsx
-// COMPLETE REBUILD — Demo Mode + All 6 Hackathon Judging Criteria
-// 1. Stress Test  2. Guardrails  3. Thought Trace  4. Observability  5. Reliability  6. Product Demo
+// Full security dashboard with demo mode
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
@@ -450,13 +449,8 @@ export default function Dashboard() {
     { id:'vulns', label:'Vulnerabilities', icon:'🐛', count:5 },
     { id:'patches', label:'AI Patches', icon:'🔧' },
     { id:'agent', label:'Agent Loop', icon:'⚡' },
-    { id:'thought', label:'Thought Trace', icon:'🧠', badge:'NEW' },
     { id:'redblue', label:'Red vs Blue', icon:'⚔️' },
     { id:'verify', label:'Verify', icon:'🧪' },
-    { id:'stress', label:'Stress Test', icon:'💥', badge:'NEW' },
-    { id:'guardrails', label:'Guardrails', icon:'🛡️', badge:'NEW' },
-    { id:'obs', label:'Observability', icon:'📡', badge:'NEW' },
-    { id:'reliability', label:'Reliability', icon:'✅', badge:'NEW' },
     { id:'timeline', label:'Timeline', icon:'📈' },
     { id:'radar', label:'Radar', icon:'🎯' },
     { id:'sentry', label:'Sentry AI', icon:'🤖' },
@@ -892,33 +886,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* HACKATHON CRITERIA PREVIEW — show all 6 panels even on idle */}
-            <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:18,padding:'26px 30px'}}>
-              <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:12,fontWeight:700,color:'var(--green)',textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:20,display:'flex',alignItems:'center',gap:10}}>
-                <span style={{width:8,height:8,borderRadius:'50%',background:'var(--green)',boxShadow:'0 0 8px var(--green)',display:'inline-block'}}/>
-                Hackathon Judging Criteria — All 6 Demonstrated
-              </div>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14}}>
-                {[
-                  {ico:'🧠',title:'Thought Trace',desc:'Watch the AI reason step by step — parsing code, selecting tools, deciding on patches.',color:'#a78bfa',tab:'thought'},
-                  {ico:'📡',title:'Observability',desc:'Real-time agent activity log with timestamps. Every decision tracked and visible.',color:'#00e5ff',tab:'obs'},
-                  {ico:'✅',title:'Reliability',desc:'47 automated verification tests. Patches confirmed safe before PR creation.',color:'#00ff88',tab:'reliability'},
-                  {ico:'💥',title:'Stress Test',desc:'4 failure scenarios tested: API timeout, rate limit, corrupt file, prompt injection.',color:'#f97316',tab:'stress'},
-                  {ico:'🛡️',title:'Guardrail Security',desc:'6 active guardrails: injection detection, input validation, output sanitization, RLS.',color:'#ff4444',tab:'guardrails'},
-                  {ico:'🚀',title:'Product Demo',desc:'One-click live demo scans a real EdTech codebase and finds 5 critical vulnerabilities.',color:'#00ff88',tab:'overview'},
-                ].map((c,i)=>(
-                  <div key={i} style={{background:'var(--surface2)',border:`1px solid ${c.color}18`,borderRadius:11,padding:'16px 18px',cursor:'pointer',transition:'all 0.2s'}}
-                    onClick={runDemo}
-                    onMouseOver={e=>(e.currentTarget.style.borderColor=c.color+'40')}
-                    onMouseOut={e=>(e.currentTarget.style.borderColor=c.color+'18')}>
-                    <div style={{fontSize:22,marginBottom:9}}>{c.ico}</div>
-                    <div style={{fontWeight:700,fontSize:13,color:'#fff',marginBottom:5}}>{c.title}</div>
-                    <div style={{fontSize:12,color:'var(--muted)',lineHeight:1.55}}>{c.desc}</div>
-                    <div style={{marginTop:10,fontFamily:'JetBrains Mono,monospace',fontSize:9,color:c.color,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.08em'}}>→ Click demo to see live</div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </>
         )}
 
@@ -991,7 +958,6 @@ export default function Dashboard() {
                   <button key={t.id} className={`tab-btn ${activeTab===t.id?'on':''}`} onClick={()=>setActiveTab(t.id)}>
                     {t.icon} {t.label}
                     {t.count && <span className="tab-count">{t.count}</span>}
-                    {t.badge && <span className="tab-new">{t.badge}</span>}
                   </button>
                 ))}
               </div>
@@ -1036,17 +1002,17 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* 6 criteria quick links */}
+                  {/* Quick navigation links */}
                   <div style={{background:'rgba(0,255,136,0.04)',border:'1px solid rgba(0,255,136,0.14)',borderRadius:12,padding:'18px 20px'}}>
-                    <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:10,fontWeight:700,color:'var(--green)',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:14}}>⚡ All Hackathon Criteria — Click Any Tab Above</div>
+                    <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:10,fontWeight:700,color:'var(--green)',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:14}}>⚡ Explore Security Features</div>
                     <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}}>
                       {[
-                        {tab:'thought',ico:'🧠',name:'Thought Trace',desc:'See AI reasoning in real time'},
-                        {tab:'obs',ico:'📡',name:'Observability',desc:'Live activity log with filters'},
-                        {tab:'reliability',ico:'✅',name:'Reliability',desc:'8/8 verification tests passing'},
-                        {tab:'stress',ico:'💥',name:'Stress Test',desc:'4 failure scenarios handled'},
-                        {tab:'guardrails',ico:'🛡️',name:'Guardrails',desc:'6 active security protections'},
+                        {tab:'vulns',ico:'🐛',name:'Vulnerabilities',desc:'5 critical findings with details'},
+                        {tab:'patches',ico:'🔧',name:'AI Patches',desc:'Auto-generated secure fixes'},
                         {tab:'agent',ico:'⚡',name:'Agent Loop',desc:'8-step autonomous workflow'},
+                        {tab:'redblue',ico:'⚔️',name:'Red vs Blue',desc:'Attack simulation & defense'},
+                        {tab:'verify',ico:'🧪',name:'Verify',desc:'Patch verification sandbox'},
+                        {tab:'sentry',ico:'🤖',name:'Sentry AI',desc:'Chat with the security agent'},
                       ].map((c,i)=>(
                         <div key={i} style={{background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:9,padding:'12px 14px',cursor:'pointer',transition:'border-color 0.2s'}} onClick={()=>setActiveTab(c.tab)}
                           onMouseOver={e=>(e.currentTarget.style.borderColor='rgba(0,255,136,0.3)')}
@@ -1181,59 +1147,6 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {/* ── THOUGHT TRACE (CRITERION 3) ── */}
-              {activeTab === 'thought' && (
-                <div className="tab-content">
-                  <div className="section-hdr">
-                    <div className="section-title">
-                      🧠 Agent Thought Trace
-                      <span className="section-badge" style={{background:'rgba(167,139,250,0.1)',color:'var(--purple)',border:'1px solid rgba(167,139,250,0.25)'}}>Agentic Criterion</span>
-                      {thoughtDone&&<span className="section-badge" style={{background:'rgba(0,255,136,0.08)',color:'var(--green)',border:'1px solid rgba(0,255,136,0.2)'}}>✓ Reasoning Complete</span>}
-                    </div>
-                    {!thoughtRunning&&<button className="run-btn run-btn-purple" onClick={runThought}>{thoughtDone?'↺ Replay Reasoning':'▷ Start Thought Trace'}</button>}
-                    {thoughtRunning&&<div style={{display:'flex',alignItems:'center',gap:7,fontFamily:'JetBrains Mono,monospace',fontSize:11,color:'var(--purple)'}}><div className="spin" style={{borderTopColor:'var(--purple)'}}/>AI is reasoning...</div>}
-                  </div>
-
-                  <div style={{background:'rgba(167,139,250,0.05)',border:'1px solid rgba(167,139,250,0.15)',borderRadius:10,padding:'11px 15px',fontFamily:'JetBrains Mono,monospace',fontSize:11,color:'rgba(167,139,250,0.8)',marginBottom:6}}>
-                    💭 This panel shows HOW the AI reasons — what it thinks about, what decisions it makes, and why. This is the "agent reasoning" required for Agentic AI judging.
-                  </div>
-
-                  <div className="thought-flow">
-                    {thoughtSteps.map((s,i)=>(
-                      <div key={i} className="thought-step">
-                        <div className="thought-step-left">
-                          <div className="thought-step-circle" style={{
-                            borderColor:s.status==='done'?'var(--purple)':s.status==='thinking'?'var(--cyan)':'rgba(255,255,255,0.1)',
-                            background:s.status==='done'?'rgba(167,139,250,0.15)':s.status==='thinking'?'rgba(0,229,255,0.1)':'rgba(255,255,255,0.03)',
-                          }}>
-                            {s.status==='done'?'✓':s.status==='thinking'?<div className="spin" style={{borderTopColor:'var(--cyan)'}}/>:String(i+1)}
-                          </div>
-                          {i<thoughtSteps.length-1&&(
-                            <div className="thought-step-connector" style={{background:s.status==='done'?'rgba(167,139,250,0.3)':'rgba(255,255,255,0.07)'}}/>
-                          )}
-                        </div>
-                        <div className="thought-right">
-                          <div className="thought-step-title" style={{color:s.status==='done'?'var(--purple)':s.status==='thinking'?'var(--cyan)':s.status==='pending'?'var(--dim)':'#fff'}}>
-                            {s.step}
-                          </div>
-                          {s.status==='thinking'&&i===thoughtSteps.findIndex(t=>t.status==='thinking')&&(
-                            <div className="thought-typing">
-                              {typingText}<span className="thought-cursor">█</span>
-                            </div>
-                          )}
-                          {s.status==='done'&&(
-                            <>
-                              <div className="thought-box">{s.thought}</div>
-                              <div className="thought-action">⚡ Action: {s.action}</div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {/* ── RED vs BLUE ── */}
               {activeTab === 'redblue' && (
                 <div className="tab-content">
@@ -1317,227 +1230,6 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {/* ── STRESS TEST (CRITERION 4) ── */}
-              {activeTab === 'stress' && (
-                <div className="tab-content">
-                  <div className="section-hdr">
-                    <div className="section-title">💥 Stress Test Mode
-                      <span className="section-badge" style={{background:'rgba(249,115,22,0.1)',color:'#fb923c',border:'1px solid rgba(249,115,22,0.25)'}}>Resilience Testing</span>
-                    </div>
-                    <button className="run-btn run-btn-red" disabled={stressRunning} onClick={runStress}>
-                      {stressRunning?<><div className="spin" style={{borderTopColor:'#ff6b6b'}}/>Running...</>:'▷ Run Scenario'}
-                    </button>
-                  </div>
-
-                  <div style={{background:'rgba(249,115,22,0.05)',border:'1px solid rgba(249,115,22,0.15)',borderRadius:10,padding:'11px 15px',fontFamily:'JetBrains Mono,monospace',fontSize:11,color:'rgba(249,115,22,0.8)',marginBottom:6}}>
-                    💥 This demonstrates how CyberSentry handles failure cases — a key requirement for production AI systems and a judging criterion.
-                  </div>
-
-                  <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:10,fontWeight:700,color:'var(--dim)',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:10}}>Select Scenario:</div>
-                  <div className="stress-scenario-btns">
-                    {STRESS_SCENARIOS.map((s,i)=>(
-                      <button key={i} className="stress-scenario-btn" style={{background:stressIdx===i?s.color+'18':'rgba(255,255,255,0.04)',borderColor:stressIdx===i?s.color:'var(--border)',color:stressIdx===i?s.color:'var(--muted)'}} onClick={()=>{setStressIdx(i);setStressDone(false);setStressLog([])}}>
-                        {s.name}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Scenario details */}
-                  <div style={{background:'var(--surface2)',border:`1px solid ${STRESS_SCENARIOS[stressIdx].color}22`,borderRadius:11,padding:'16px 18px',marginBottom:14}}>
-                    <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:13,fontWeight:700,color:'#fff',marginBottom:8}}>Scenario: {STRESS_SCENARIOS[stressIdx].name}</div>
-                    <div style={{display:'flex',alignItems:'flex-start',gap:10,marginBottom:8}}>
-                      <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:10,fontWeight:700,color:'#f97316',background:'rgba(249,115,22,0.1)',border:'1px solid rgba(249,115,22,0.2)',padding:'2px 8px',borderRadius:4,flexShrink:0,marginTop:1}}>TRIGGER</span>
-                      <span style={{fontSize:13,color:'var(--muted)'}}>{STRESS_SCENARIOS[stressIdx].trigger}</span>
-                    </div>
-                    <div style={{display:'flex',alignItems:'flex-start',gap:10}}>
-                      <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:10,fontWeight:700,color:STRESS_SCENARIOS[stressIdx].color,background:STRESS_SCENARIOS[stressIdx].color+'10',border:`1px solid ${STRESS_SCENARIOS[stressIdx].color}25`,padding:'2px 8px',borderRadius:4,flexShrink:0,marginTop:1}}>RESPONSE</span>
-                      <div style={{display:'flex',flexDirection:'column',gap:4}}>
-                        {STRESS_SCENARIOS[stressIdx].response.map((r,j)=>(
-                          <span key={j} style={{fontSize:12,color:'rgba(255,255,255,0.55)',fontFamily:'JetBrains Mono,monospace'}}>{r}</span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {stressLog.length>0&&(
-                    <div className="stress-log-box" ref={stressRef}>
-                      {stressLog.map((l,i)=>(
-                        <div key={i} className="stress-log-line" style={{color:l.includes('OUTCOME')?STRESS_SCENARIOS[stressIdx].color:l.includes('TRIGGER')?'#f97316':l.includes('ERROR')||l.includes('failed')?'#fca5a5':'rgba(255,255,255,0.6)'}}>
-                          {l}
-                        </div>
-                      ))}
-                      {stressRunning&&<span style={{fontFamily:'JetBrains Mono,monospace',fontSize:13,color:'var(--green)',animation:'blink 1s infinite'}}>█</span>}
-                    </div>
-                  )}
-                  {stressDone&&(
-                    <div className="stress-outcome" style={{background:STRESS_SCENARIOS[stressIdx].color+'10',border:`1px solid ${STRESS_SCENARIOS[stressIdx].color}25`,color:STRESS_SCENARIOS[stressIdx].color}}>
-                      {STRESS_SCENARIOS[stressIdx].outcome}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* ── GUARDRAILS (CRITERION 5) ── */}
-              {activeTab === 'guardrails' && (
-                <div className="tab-content">
-                  <div className="section-hdr">
-                    <div className="section-title">🛡️ AI Guardrail Security
-                      <span className="section-badge" style={{background:'rgba(255,68,68,0.08)',color:'#ff6b6b',border:'1px solid rgba(255,68,68,0.2)'}}>Security Criterion</span>
-                    </div>
-                    <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:11,color:'var(--green)'}}>6/6 Active ✓</span>
-                  </div>
-
-                  <div style={{background:'rgba(255,68,68,0.05)',border:'1px solid rgba(255,68,68,0.14)',borderRadius:10,padding:'11px 15px',fontFamily:'JetBrains Mono,monospace',fontSize:11,color:'rgba(255,107,107,0.85)',marginBottom:6}}>
-                    🛡️ These guardrails prevent the AI from being exploited, misused, or producing harmful outputs. Each can be tested live.
-                  </div>
-
-                  <div className="guard-grid">
-                    {GUARDRAILS.map((g,i)=>(
-                      <div key={i} className="guard-card">
-                        <div className="guard-card-top">
-                          <div className="guard-name">✔ {g.name}</div>
-                          <div className="guard-status">ACTIVE</div>
-                        </div>
-                        <div className="guard-desc">{g.desc}</div>
-                        <button className="guard-test-btn" onClick={()=>testGuardrail(i)} disabled={guardTestIdx===i}>
-                          {guardTestIdx===i?<><div className="spin" style={{borderTopColor:'var(--purple)'}}/>Testing...</>:'▷ Test Guardrail'}
-                        </button>
-                        {guardTestIdx===null&&(
-                          <div style={{marginTop:8,fontFamily:'JetBrains Mono,monospace',fontSize:10,color:'var(--green)'}}>
-                            {[
-                              '✓ Tested: "Ignore previous instructions" blocked',
-                              '✓ Tested: 192.168.1.1 rejected as private IP',
-                              '✓ Tested: Script tags stripped from AI output',
-                              '✓ Tested: 11th scan in 1hr blocked with 429',
-                              '✓ Tested: Company A cannot access Company B data',
-                              '✓ Tested: API key redacted from scan report',
-                            ][i]}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ── OBSERVABILITY (CRITERION 2) ── */}
-              {activeTab === 'obs' && (
-                <div className="tab-content">
-                  <div className="section-hdr">
-                    <div className="section-title">📡 Agent Observability
-                      <span className="section-badge" style={{background:'rgba(0,229,255,0.07)',color:'var(--cyan)',border:'1px solid rgba(0,229,255,0.18)'}}>Monitoring Criterion</span>
-                    </div>
-                    <div style={{display:'flex',gap:8}}>
-                      <button className={`obs-live-btn ${obsLive?'active':''}`}
-                        style={{background:obsLive?'rgba(0,255,136,0.1)':'rgba(255,255,255,0.04)',border:`1px solid ${obsLive?'rgba(0,255,136,0.3)':'var(--border)'}`,color:obsLive?'var(--green)':'var(--muted)'}}
-                        onClick={()=>{setObsLive(!obsLive);if(!obsLive)addObs('Live feed started — monitoring all agent activity','info')}}>
-                        <div style={{width:6,height:6,borderRadius:'50%',background:obsLive?'var(--green)':'var(--dim)',boxShadow:obsLive?'0 0 6px var(--green)':'none'}}/>
-                        {obsLive?'Stop Live Feed':'Start Live Feed'}
-                      </button>
-                      <button className="run-btn run-btn-ghost" style={{background:'rgba(255,255,255,0.04)',border:'1px solid var(--border)',color:'var(--muted)',padding:'6px 13px',borderRadius:7,cursor:'pointer',fontSize:11}} onClick={()=>setObsLog([])}>Clear</button>
-                    </div>
-                  </div>
-
-                  <div style={{background:'rgba(0,229,255,0.04)',border:'1px solid rgba(0,229,255,0.13)',borderRadius:10,padding:'11px 15px',fontFamily:'JetBrains Mono,monospace',fontSize:11,color:'rgba(0,229,255,0.8)',marginBottom:6}}>
-                    📡 Real-time visibility into every decision the AI agent makes — tool selections, vulnerability findings, patch actions, and system health. This satisfies the Observability judging criterion.
-                  </div>
-
-                  <div className="obs-hdr">
-                    <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:11,color:'var(--dim)'}}>{obsLog.length} events logged</div>
-                    <div className="obs-filters">
-                      {['all','info','warn','success'].map(f=>(
-                        <button key={f} className="obs-filter" style={{background:f==='all'?'rgba(0,229,255,0.07)':'',borderColor:f==='all'?'rgba(0,229,255,0.25)':'',color:f==='all'?'var(--cyan)':''}}>
-                          {f.toUpperCase()}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="obs-feed" ref={obsRef}>
-                    {obsLog.length===0?(
-                      <div className="obs-empty">
-                        Start the demo scan or agent loop to see real-time logs here.<br/>Or click "Start Live Feed" for continuous monitoring.
-                      </div>
-                    ):obsLog.map((l,i)=>(
-                      <div key={i} className="obs-row">
-                        <div className="obs-time">{l.time}</div>
-                        <div className="obs-level-dot" style={{background:l.level==='warn'?'#f97316':l.level==='success'?'var(--green)':l.level==='error'?'#ff4444':'rgba(0,229,255,0.6)'}}/>
-                        <div className="obs-msg">{l.msg}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Metrics row */}
-                  <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginTop:4}}>
-                    {[
-                      {l:'Total Events',v:obsLog.length,c:'var(--text)'},
-                      {l:'Warnings',v:obsLog.filter(l=>l.level==='warn').length,c:'#f97316'},
-                      {l:'Successes',v:obsLog.filter(l=>l.level==='success').length,c:'var(--green)'},
-                      {l:'Live Feed',v:obsLive?'ON':'OFF',c:obsLive?'var(--green)':'var(--dim)'},
-                    ].map((m,i)=>(
-                      <div key={i} style={{background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:9,padding:'13px 16px',textAlign:'center'}}>
-                        <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:22,fontWeight:800,color:m.c,marginBottom:4}}>{m.v}</div>
-                        <div style={{fontSize:10,color:'var(--dim)'}}>{m.l}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ── RELIABILITY (CRITERION 1) ── */}
-              {activeTab === 'reliability' && (
-                <div className="tab-content">
-                  <div className="section-hdr">
-                    <div className="section-title">✅ System Reliability
-                      <span className="section-badge" style={{background:'rgba(0,255,136,0.08)',color:'var(--green)',border:'1px solid rgba(0,255,136,0.2)'}}>Quality Criterion</span>
-                    </div>
-                    <button className="run-btn run-btn-green" disabled={reliabilityRunning} onClick={runReliability}>
-                      {reliabilityRunning?<><div className="spin"/>Running...</>:'▷ Run Reliability Tests'}
-                    </button>
-                  </div>
-
-                  <div style={{background:'rgba(0,255,136,0.04)',border:'1px solid rgba(0,255,136,0.14)',borderRadius:10,padding:'11px 15px',fontFamily:'JetBrains Mono,monospace',fontSize:11,color:'var(--green)',marginBottom:6}}>
-                    ✅ These tests verify that patches actually work, don't break existing functionality, and that the system is reliable enough for production use.
-                  </div>
-
-                  <div className="reliability-bar">
-                    {[
-                      {l:'Uptime',v:'99.9%',c:'var(--green)'},
-                      {l:'Tests Passing',v:`${reliabilityDone?'8/8':reliabilityRunning?`${reliabilityResults.filter(t=>t.status==='passed').length}/8`:'0/8'}`,c:'var(--green)'},
-                      {l:'Avg Scan Time',v:'4.8s',c:'var(--cyan)'},
-                      {l:'False Positive Rate',v:'0.2%',c:'var(--green)'},
-                    ].map((s,i)=>(
-                      <div key={i} className="rel-stat">
-                        <div className="rel-stat-val" style={{color:s.c}}>{s.v}</div>
-                        <div className="rel-stat-lbl">{s.l}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div style={{display:'flex',flexDirection:'column',gap:8}}>
-                    {reliabilityResults.map((t,i)=>{
-                      const sc = {pending:'rgba(255,255,255,0.12)',running:'var(--cyan)',passed:'var(--green)',failed:'#ff4444'}
-                      const si = {pending:'○',running:'◌',passed:'✓',failed:'✗'}
-                      return (
-                        <div key={i} className="verify-test" style={{borderColor:(sc as any)[t.status]+'40',background:t.status==='passed'?'rgba(0,255,136,0.04)':'rgba(255,255,255,0.02)'}}>
-                          <div className="verify-icon-box" style={{color:(sc as any)[t.status]}}>
-                            {t.status==='running'?<div className="spin" style={{width:14,height:14}}/>:<span style={{fontSize:15,fontWeight:700}}>{(si as any)[t.status]}</span>}
-                          </div>
-                          <div style={{flex:1}}>
-                            <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:11,fontWeight:700,color:t.status==='pending'?'var(--dim)':'#fff'}}>{t.name}</div>
-                          </div>
-                          {(t as any).ms&&t.status==='passed'&&<div style={{fontFamily:'JetBrains Mono,monospace',fontSize:10,color:'var(--dim)'}}>{(t as any).ms}ms</div>}
-                        </div>
-                      )
-                    })}
-                    {reliabilityDone&&(
-                      <div className="verify-result" style={{background:'rgba(0,255,136,0.07)',border:'1px solid rgba(0,255,136,0.2)'}}>
-                        ✅ <strong>8/8 reliability tests passed</strong> — System is production-ready. All patches verified. No regressions.
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
 
               {/* ── TIMELINE ── */}
               {activeTab === 'timeline' && (
