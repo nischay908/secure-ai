@@ -104,17 +104,17 @@ export default function LandingPage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         html{scroll-behavior:smooth}
-        body{background:#030303;color:#fff;font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+        body{background:#030303;color:#fff;font-family:'Outfit',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
         .lp{background:#030303}
         /* NAV */
         .lnav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:68px;display:flex;align-items:center;justify-content:space-between;transition:all 0.3s}
         .lnav.scrolled{background:rgba(3,3,3,0.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.06)}
         .lnav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;cursor:pointer}
         .lnav-ico{width:34px;height:34px;border-radius:8px;background:#000;border:1px solid rgba(0,255,136,0.35);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 14px rgba(0,255,136,0.15)}
-        .lnav-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff}
+        .lnav-name{font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:#fff}
         .lnav-ai{font-size:10px;font-weight:800;color:#000;background:#00ff88;padding:2px 7px;border-radius:4px}
         .lnav-links{display:flex;align-items:center;gap:32px}
         .lnav-link{font-size:14px;font-weight:500;color:rgba(255,255,255,0.55);text-decoration:none;cursor:pointer;transition:color 0.2s}
@@ -130,13 +130,13 @@ export default function LandingPage() {
         .hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 0%,transparent 100%)}
         .hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.2);color:#00ff88;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:6px 16px;border-radius:40px;margin-bottom:28px;letter-spacing:0.08em;text-transform:uppercase}
         .hero-dot{width:6px;height:6px;border-radius:50%;background:#00ff88;box-shadow:0 0 8px #00ff88;animation:blink 2s infinite}
-        .hero-h1{font-family:'Syne',sans-serif;font-size:clamp(44px,7vw,88px);font-weight:800;letter-spacing:-0.04em;line-height:1.0;color:#fff;margin-bottom:24px;max-width:900px}
+        .hero-h1{font-family:'Outfit',sans-serif;font-size:clamp(44px,7vw,88px);font-weight:800;letter-spacing:-0.04em;line-height:1.0;color:#fff;margin-bottom:24px;max-width:900px}
         .hero-h1-green{color:#00ff88}
         .hero-sub{font-size:clamp(16px,2vw,20px);color:rgba(255,255,255,0.45);line-height:1.7;max-width:600px;margin:0 auto 40px;font-weight:300}
         .hero-btns{display:flex;align-items:center;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:60px}
-        .hero-btn-primary{font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;color:#000;cursor:pointer;padding:16px 36px;border-radius:10px;background:#00ff88;border:none;transition:all 0.25s;box-shadow:0 0 40px rgba(0,255,136,0.3)}
+        .hero-btn-primary{font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:#000;cursor:pointer;padding:16px 36px;border-radius:10px;background:#00ff88;border:none;transition:all 0.25s;box-shadow:0 0 40px rgba(0,255,136,0.3)}
         .hero-btn-primary:hover{background:#1aff95;box-shadow:0 0 60px rgba(0,255,136,0.5);transform:translateY(-2px)}
-        .hero-btn-secondary{font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;color:rgba(255,255,255,0.7);cursor:pointer;padding:15px 32px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);transition:all 0.2s}
+        .hero-btn-secondary{font-family:'Outfit',sans-serif;font-size:16px;font-weight:600;color:rgba(255,255,255,0.7);cursor:pointer;padding:15px 32px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);transition:all 0.2s}
         .hero-btn-secondary:hover{color:#fff;border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.08)}
         /* LIVE DEMO WINDOW */
         .demo-window{width:100%;max-width:860px;margin:0 auto;background:#080808;border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,0.6)}
@@ -154,21 +154,21 @@ export default function LandingPage() {
         .stats-grid{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:0}
         .stat-item{text-align:center;padding:30px 20px;border-right:1px solid rgba(255,255,255,0.06)}
         .stat-item:last-child{border-right:none}
-        .stat-num{font-family:'Syne',sans-serif;font-size:clamp(32px,4vw,52px);font-weight:800;color:#fff;line-height:1;margin-bottom:8px}
+        .stat-num{font-family:'Outfit',sans-serif;font-size:clamp(32px,4vw,52px);font-weight:800;color:#fff;line-height:1;margin-bottom:8px}
         .stat-num-green{color:#00ff88}
         .stat-lbl{font-size:14px;color:rgba(255,255,255,0.35);font-weight:400}
         /* HOW IT WORKS */
         .section{padding:100px 40px}
         .section-center{text-align:center}
         .section-tag{display:inline-flex;align-items:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#00ff88;margin-bottom:18px}
-        .section-h2{font-family:'Syne',sans-serif;font-size:clamp(32px,4vw,52px);font-weight:800;letter-spacing:-0.03em;color:#fff;margin-bottom:18px;line-height:1.1}
+        .section-h2{font-family:'Outfit',sans-serif;font-size:clamp(32px,4vw,52px);font-weight:800;letter-spacing:-0.03em;color:#fff;margin-bottom:18px;line-height:1.1}
         .section-sub{font-size:17px;color:rgba(255,255,255,0.4);max-width:560px;margin:0 auto;line-height:1.7;font-weight:300}
         .steps-grid{max-width:1100px;margin:60px auto 0;display:grid;grid-template-columns:repeat(5,1fr);gap:0;position:relative}
         .steps-grid::before{content:'';position:absolute;top:32px;left:10%;right:10%;height:1px;background:linear-gradient(to right,transparent,rgba(0,255,136,0.3),transparent)}
         .step-item{text-align:center;padding:0 16px;position:relative;z-index:1}
         .step-circle{width:64px;height:64px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 20px;border:1px solid;transition:all 0.3s}
         .step-num{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:800;color:rgba(255,255,255,0.25);margin-bottom:10px;letter-spacing:0.1em}
-        .step-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:10px}
+        .step-title{font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:10px}
         .step-desc{font-size:13px;color:rgba(255,255,255,0.4);line-height:1.6}
         /* FEATURES */
         .features-grid{max-width:1100px;margin:60px auto 0;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
@@ -178,7 +178,7 @@ export default function LandingPage() {
         .feature-card:hover{border-color:rgba(0,255,136,0.2);transform:translateY(-3px);box-shadow:0 20px 40px rgba(0,0,0,0.4)}
         .feature-ico{font-size:28px;margin-bottom:14px}
         .feature-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#00ff88;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.18);padding:2px 8px;border-radius:4px;margin-bottom:12px}
-        .feature-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#fff;margin-bottom:10px}
+        .feature-title{font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;color:#fff;margin-bottom:10px}
         .feature-desc{font-size:13px;color:rgba(255,255,255,0.42);line-height:1.6}
         /* PRICING */
         .pricing-grid{max-width:1000px;margin:60px auto 0;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
@@ -186,16 +186,16 @@ export default function LandingPage() {
         .price-card{background:#080808;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:32px 28px;display:flex;flex-direction:column;gap:0;transition:all 0.25s;position:relative}
         .price-card-highlight{border-color:rgba(0,255,136,0.3);box-shadow:0 0 40px rgba(0,255,136,0.08)}
         .price-popular{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#00ff88;color:#000;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:800;padding:4px 14px;border-radius:40px;text-transform:uppercase;letter-spacing:0.08em;white-space:nowrap}
-        .price-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#fff;margin-bottom:8px}
+        .price-name{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;color:#fff;margin-bottom:8px}
         .price-amount{display:flex;align-items:flex-end;gap:4px;margin-bottom:10px}
-        .price-num{font-family:'Syne',sans-serif;font-size:48px;font-weight:800;color:#fff;line-height:1}
+        .price-num{font-family:'Outfit',sans-serif;font-size:48px;font-weight:800;color:#fff;line-height:1}
         .price-period{font-size:14px;color:rgba(255,255,255,0.4);padding-bottom:8px}
         .price-desc{font-size:13px;color:rgba(255,255,255,0.35);margin-bottom:24px;line-height:1.5}
         .price-divider{height:1px;background:rgba(255,255,255,0.07);margin-bottom:20px}
         .price-features{display:flex;flex-direction:column;gap:10px;margin-bottom:28px;flex:1}
         .price-feature{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:rgba(255,255,255,0.6);line-height:1.4}
         .price-check{flex-shrink:0;margin-top:1px;font-size:12px}
-        .price-btn{width:100%;padding:14px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;border:none;margin-top:auto}
+        .price-btn{width:100%;padding:14px;border-radius:9px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;border:none;margin-top:auto}
         .price-btn-green{background:#00ff88;color:#000;box-shadow:0 0 24px rgba(0,255,136,0.22)}
         .price-btn-green:hover{background:#1aff95;box-shadow:0 0 36px rgba(0,255,136,0.4)}
         .price-btn-outline{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.12)!important}
@@ -212,7 +212,7 @@ export default function LandingPage() {
         /* CTA SECTION */
         .cta-section{padding:120px 40px;text-align:center;position:relative;overflow:hidden}
         .cta-bg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 70% at 50% 50%,rgba(0,255,136,0.06) 0%,transparent 70%)}
-        .cta-h2{font-family:'Syne',sans-serif;font-size:clamp(36px,5vw,64px);font-weight:800;letter-spacing:-0.04em;color:#fff;margin-bottom:20px;line-height:1.05}
+        .cta-h2{font-family:'Outfit',sans-serif;font-size:clamp(36px,5vw,64px);font-weight:800;letter-spacing:-0.04em;color:#fff;margin-bottom:20px;line-height:1.05}
         .cta-sub{font-size:18px;color:rgba(255,255,255,0.4);margin-bottom:40px;font-weight:300}
         /* FOOTER */
         .footer{padding:40px;border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
