@@ -8,9 +8,9 @@ import { supabase } from '@/lib/supabase'
 
 // ─── DEMO DATA ────────────────────────────────────────────────────────────────
 const DEMO = {
-  company: 'WebSchool Technologies',
-  repo: 'webschool/learning-platform',
-  industry: 'EdTech',
+  company: 'Demo Company',
+  repo: 'OWASP/NodeGoat',
+  industry: 'Technology',
   score: 23,
   grade: 'F',
   students: 8400,
@@ -150,7 +150,7 @@ const AGENT_STEPS = [
 ]
 
 const THOUGHT_TRACE = [
-  { step:'User Request Received', thought:'Analyzing request for WebSchool Technologies repository scan. Identifying entity type: EdTech platform, identifying applicable compliance frameworks.', action:'Parse request → identify company type → select ruleset', status:'done' },
+  { step:'User Request Received', thought:'Analyzing request for repository scan. Identifying entity type and applicable compliance frameworks.', action:'Parse request → identify company type → select ruleset', status:'done' },
   { step:'Parsing Repository', thought:'Repository has TypeScript/Node.js stack. Highest risk areas for this stack: SQL injection in DB queries, hardcoded secrets in config, missing middleware on API routes.', action:'Build AST → trace data flows → identify sink points', status:'done' },
   { step:'Selecting Security Tools', thought:'For a Node.js EdTech platform I need: OWASP Top-10, FERPA data protection checks, authentication flow analysis, dependency CVE scanning. Prioritizing by blast radius.', action:'Load 847 rules → rank by severity × exploitability', status:'done' },
   { step:'Running Vulnerability Tests', thought:'SQL injection found at line 47 — direct string concatenation to db.execute(). CRITICAL. Also found hardcoded JWT_SECRET — means I can forge admin tokens. CRITICAL. Unauthenticated admin endpoint found.', action:'Pattern match → taint analysis → confirm exploitability', status:'done' },
@@ -191,6 +191,11 @@ export default function Dashboard() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [profileOpen, setProfileOpen] = useState(false)
+
+  // Company profile from onboarding
+  const [company, setCompany] = useState(DEMO)
+  const [realVulns, setRealVulns] = useState<any[]>([])
+  const [isRealScan, setIsRealScan] = useState(false)
 
   // Demo scan state
   const [phase, setPhase] = useState<'idle'|'scanning'|'results'>('idle')
@@ -271,43 +276,118 @@ export default function Dashboard() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user || { email: 'demo@cybersentry.ai' }))
+    // Load company profile from onboarding
+    try {
+      const saved = sessionStorage.getItem('company_profile')
+      if (saved) {
+        const profile = JSON.parse(saved)
+        setCompany({
+          company: profile.companyName || 'Your Company',
+          repo: profile.repoUrl?.replace('https://github.com/', '') || DEMO.repo,
+          industry: profile.industry || 'Technology',
+          score: 0, grade: '?', students: 0, files: 0, scanned: 0, duration: 0,
+        })
+      }
+    } catch {}
   }, [])
 
   const addObs = useCallback((msg: string, level = 'info') => {
     setObsLog(p => [...p.slice(-60), { time: new Date().toLocaleTimeString(), msg, level }])
   }, [])
 
-  // ── DEMO SCAN ────────────────────────────────────────────────────────────────
+  // ── REAL SCAN — calls /api/scan with actual repo ────────────────────────────
   const runDemo = async () => {
-    setPhase('scanning'); setScanLog([]); setProgress(0)
-    const steps = [
-      [8,'Connecting to GitHub API...'],
-      [16,'Cloning webschool/learning-platform...'],
-      [24,'Indexed 312 source files'],
-      [32,'Industry detected: EdTech — loading FERPA + OWASP rules'],
-      [40,'Scanning src/api/users/route.ts...'],
-      [48,'⚠ SQL Injection at line 47 — CRITICAL'],
-      [55,'Scanning src/lib/auth.ts...'],
-      [62,'⚠ Hardcoded JWT_SECRET at line 12 — CRITICAL'],
-      [68,'⚠ Exposed DB credentials at line 8 — CRITICAL'],
-      [74,'Scanning src/components/CourseContent.tsx...'],
-      [80,'⚠ XSS via innerHTML at line 83 — HIGH'],
-      [86,'⚠ Missing authentication on /api/admin/students — CRITICAL'],
-      [92,'Scanning package.json — 5 vulnerable dependencies'],
-      [97,'Calculating security score...'],
-      [100,'Scan complete — Security score: 23/100 (CRITICAL)'],
-    ] as [number,string][]
+    setPhase('scanning'); setScanLog([]); setProgress(0); setIsRealScan(false)
 
-    for (const [p, msg] of steps) {
-      setProgress(p)
+    const repoUrl = company.repo.includes('github.com') ? company.repo : `https://github.com/${company.repo}`
+    const repoDisplay = company.repo.replace('https://github.com/', '')
+
+    const log = (msg: string) => {
       setScanLog(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`])
-      addObs(msg, msg.includes('⚠') ? 'warn' : 'info')
-      await new Promise(r => setTimeout(r, 280))
+      addObs(msg, msg.includes('⚠') || msg.includes('CRITICAL') ? 'warn' : msg.includes('✅') ? 'success' : 'info')
     }
-    await new Promise(r => setTimeout(r, 500))
-    setPhase('results')
-    setActiveTab('overview')
-    setChatMsgs([{ role: 'bot', text: `Security audit complete for ${DEMO.company}.\n\nFound 5 CRITICAL vulnerabilities:\n• SQL Injection (line 47) — full database exposed\n• Hardcoded JWT Secret (line 12) — admin tokens forgeable\n• Exposed DB Credentials (line 8) — direct database access\n• XSS in Course Content (line 83) — session theft\n• Unauthenticated Admin API — 8,400 student records public\n\nSecurity score: 23/100. Patches generated. PR #47 ready to merge.` }])
+
+    log(`Connecting to GitHub API...`)
+    setProgress(8); await new Promise(r => setTimeout(r, 300))
+
+    log(`Fetching repository: ${repoDisplay}`)
+    setProgress(16); await new Promise(r => setTimeout(r, 300))
+
+    log(`Indexing source files from ${company.company}...`)
+    setProgress(24); await new Promise(r => setTimeout(r, 300))
+
+    log(`Industry: ${company.industry} — loading security rules...`)
+    setProgress(32); await new Promise(r => setTimeout(r, 300))
+
+    log(`Sending code to CyberSentry AI for deep analysis...`)
+    setProgress(45); await new Promise(r => setTimeout(r, 200))
+
+    log(`AI agent is reasoning through the code...`)
+    setProgress(55)
+
+    try {
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ repoUrl }),
+      })
+      const data = await res.json()
+
+      if (data.error) {
+        log(`❌ Error: ${data.error}`)
+        setProgress(100)
+        await new Promise(r => setTimeout(r, 1000))
+        setPhase('idle')
+        return
+      }
+
+      setProgress(70)
+
+      // Show AI thinking steps
+      if (data.thinkingSteps) {
+        for (const step of data.thinkingSteps) {
+          log(step)
+          setProgress(p => Math.min(95, p + 3))
+          await new Promise(r => setTimeout(r, 200))
+        }
+      }
+
+      // Show vulnerabilities found
+      const vulns = data.vulnerabilities || []
+      for (const v of vulns) {
+        log(`⚠ ${(v.severity || '').toUpperCase()}: ${v.name} — ${v.file}:${v.line}`)
+        await new Promise(r => setTimeout(r, 150))
+      }
+
+      setProgress(97)
+      log(`Calculating security score...`)
+      await new Promise(r => setTimeout(r, 300))
+
+      // Update company data with real results
+      setCompany(prev => ({
+        ...prev,
+        score: data.securityScore || 0,
+        grade: data.grade || 'F',
+        scanned: data.filesScanned || 0,
+      }))
+
+      setRealVulns(vulns)
+      setIsRealScan(true)
+
+      setProgress(100)
+      log(`Scan complete — Security score: ${data.securityScore}/100 (${data.grade}) — ${vulns.length} vulnerabilities found`)
+      await new Promise(r => setTimeout(r, 500))
+
+      setPhase('results')
+      setActiveTab('overview')
+      setChatMsgs([{ role: 'bot', text: `Security audit complete for ${company.company}.\n\nFound ${vulns.length} vulnerabilities in ${repoDisplay}.\nSecurity score: ${data.securityScore}/100 (${data.grade}).\n\n${data.summary || 'Analysis complete.'}\n\nAsk me anything about the findings.` }])
+
+    } catch (err: any) {
+      log(`❌ Scan failed: ${err.message || 'Network error'}`)
+      setProgress(100)
+      await new Promise(r => setTimeout(r, 1000))
+      setPhase('idle')
+    }
   }
 
   // ── AGENT LOOP ───────────────────────────────────────────────────────────────
@@ -409,16 +489,23 @@ export default function Dashboard() {
     const msg = (override || chatInput).trim()
     if (!msg || typing) return
     setChatMsgs(p => [...p, { role: 'user', text: msg }]); setChatInput(''); setTyping(true)
-    await new Promise(r => setTimeout(r, 900))
-    const lo = msg.toLowerCase()
-    let reply = ''
-    if (lo.includes('sql') || lo.includes('inject')) reply = `SQL Injection is at line 47 in src/api/users/route.ts. The code builds a database query by concatenating the user's email string directly: "SELECT * FROM users WHERE email='" + email + "'". An attacker enters ' OR '1'='1 as the email — the database runs it as SQL code and returns every user. Fix: replace with db.execute("SELECT * FROM users WHERE email=?", [email]).`
-    else if (lo.includes('critical') || lo.includes('worst')) reply = `The most critical is SQL Injection (CVSS 9.8/10) — it gives complete database access. Close second: the hardcoded JWT_SECRET (CVSS 9.8) — any attacker can forge admin tokens instantly using the secret found in auth.ts line 12. Fix SQL injection first as it requires zero authentication to exploit.`
-    else if (lo.includes('student') || lo.includes('data')) reply = `All 8,400 student records are at risk from 3 separate paths: (1) SQL injection bypasses login, (2) the admin API has no authentication at all — anyone can GET /api/admin/students, (3) the database password is hardcoded. This is a FERPA violation and GDPR breach. Estimated fine: €20M+.`
-    else if (lo.includes('fix') || lo.includes('patch')) reply = `I've generated patches for all 5 vulnerabilities. Check the "AI Patches" tab — each shows the vulnerable code on the left and the fixed version on the right. The patches are verified (see Verify tab — 8/8 tests pass). GitHub PR #47 is ready. Your team just needs to review and merge.`
-    else if (lo.includes('score') || lo.includes('23')) reply = `Score 23/100 = Grade F (Critical Risk). Main reasons: 5 critical vulnerabilities each independently catastrophic, no auth on admin routes, and credentials in source code. After merging PR #47, score improves to 78/100. Remaining gap: upgrade 5 vulnerable npm packages (see Dependencies tab).`
-    else reply = `Based on the WebSchool Technologies scan: 5 critical vulnerabilities, security score 23/100. The most urgent are SQL injection (authentication bypass) and the unauthenticated admin API (all student data publicly accessible). I've generated fixes for everything. Ask me about any specific vulnerability for a detailed explanation.`
-    setChatMsgs(p => [...p, { role: 'bot', text: reply }]); setTyping(false)
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: msg,
+          vulnerabilities: isRealScan ? realVulns : DEMO_VULNS.map(v => ({ name: v.name, severity: v.sev, cvss: v.cvss, file: v.file, line: v.line, description: v.what, fix: v.fix })),
+          securityScore: company.score,
+          repo: company.repo,
+        })
+      })
+      const data = await res.json()
+      setChatMsgs(p => [...p, { role: 'bot', text: data.reply || 'Something went wrong. Try again.' }])
+    } catch {
+      setChatMsgs(p => [...p, { role: 'bot', text: 'Connection error — please try again.' }])
+    }
+    setTyping(false)
   }
 
   const signOut = async () => { await supabase.auth.signOut(); router.push('/') }
@@ -446,7 +533,7 @@ export default function Dashboard() {
 
   const TABS = [
     { id:'overview', label:'Overview', icon:'📊' },
-    { id:'vulns', label:'Vulnerabilities', icon:'🐛', count:5 },
+    { id:'vulns', label:'Vulnerabilities', icon:'🐛', count: isRealScan ? realVulns.length : 5 },
     { id:'patches', label:'AI Patches', icon:'🔧' },
     { id:'agent', label:'Agent Loop', icon:'⚡' },
     { id:'redblue', label:'Red vs Blue', icon:'⚔️' },
@@ -780,12 +867,11 @@ export default function Dashboard() {
       <div className="ticker">
         <div className="ticker-inner">
           {[...Array(2)].flatMap(() => [
-            {l:'Company',v:'WebSchool Technologies',c:'#ff4444'},
-            {l:'Vulnerabilities',v:'5 CRITICAL',c:'#ff4444'},
-            {l:'Security Score',v:'23/100',c:'#ff4444'},
-            {l:'Students at Risk',v:'8,400',c:'#ff6b6b'},
-            {l:'Patches Ready',v:'5 AUTO-GENERATED',c:'#00ff88'},
-            {l:'GitHub PR',v:'#47 OPEN',c:'#00ff88'},
+            {l:'Company',v:company.company,c:company.score<35?'#ff4444':'#00ff88'},
+            {l:'Vulnerabilities',v:isRealScan?`${realVulns.length} FOUND`:'5 CRITICAL',c:'#ff4444'},
+            {l:'Security Score',v:`${company.score}/100`,c:company.score<35?'#ff4444':company.score<75?'#f97316':'#00ff88'},
+            {l:'Industry',v:company.industry,c:'#00e5ff'},
+            {l:'Patches Ready',v:'AUTO-GENERATED',c:'#00ff88'},
             {l:'Agent Status',v:'AUTONOMOUS',c:'#00ff88'},
           ]).map((t,i) => (
             <span key={i} className="ticker-item">
@@ -853,8 +939,8 @@ export default function Dashboard() {
                   <button className="demo-btn" onClick={runDemo}>
                     <span className="demo-btn-rocket">🚀</span>
                     <div className="demo-btn-text">
-                      <span className="demo-btn-title">Try Live Demo</span>
-                      <span className="demo-btn-hint">Scan WebSchool Technologies — EdTech platform with real vulnerabilities</span>
+                      <span className="demo-btn-title">Run Live Security Scan</span>
+                      <span className="demo-btn-hint">Scan {company.company} — {company.repo.replace('https://github.com/','')}</span>
                     </div>
                     <span className="demo-btn-arrow">→</span>
                   </button>
@@ -894,7 +980,7 @@ export default function Dashboard() {
           <div className="scan-screen">
             <div className="scan-orb">🔍</div>
             <div>
-              <h2 className="scan-h">Scanning WebSchool Technologies...</h2>
+              <h2 className="scan-h">Scanning {company.company}...</h2>
               <p className="scan-s">Reading real files · Tracing data flows · Testing vulnerabilities</p>
             </div>
             <div className="prog-rail">
@@ -924,18 +1010,23 @@ export default function Dashboard() {
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:20,flexWrap:'wrap'}}>
                 <div>
                   <div className="rep-critical-tag">
-                    <div className="rep-blink"/>CRITICAL RISK — IMMEDIATE ACTION REQUIRED
+                    <div className="rep-blink"/>{company.score < 35 ? 'CRITICAL RISK — IMMEDIATE ACTION REQUIRED' : company.score < 55 ? 'HIGH RISK — REVIEW REQUIRED' : company.score < 75 ? 'MODERATE RISK' : 'LOW RISK — LOOKING GOOD'}
                   </div>
-                  <div className="rep-company">{DEMO.company}</div>
+                  <div className="rep-company">{company.company}</div>
                   <div className="rep-meta">
-                    {DEMO.industry} · {DEMO.scanned} files scanned · Score: <span style={{color:'#ff4444',fontWeight:700}}>23/100</span> · {DEMO.duration}ms scan time
+                    {company.industry} · {company.scanned} files scanned · Score: <span style={{color:company.score<35?'#ff4444':company.score<75?'#f97316':'#00ff88',fontWeight:700}}>{company.score}/100</span>
                   </div>
                   <div className="rep-badges">
                     {[
-                      {l:'5 Critical',c:'#ff4444',bg:'rgba(255,68,68,0.08)'},
-                      {l:'3 High',c:'#f97316',bg:'rgba(249,115,22,0.08)'},
-                      {l:`${DEMO.students.toLocaleString()} Students at Risk`,c:'#ff6b6b',bg:'rgba(255,68,68,0.06)'},
-                      {l:'PR #47 Ready',c:'#00ff88',bg:'rgba(0,255,136,0.08)'},
+                      ...(isRealScan ? [
+                        {l:`${realVulns.filter((v:any)=>v.severity==='critical').length} Critical`,c:'#ff4444',bg:'rgba(255,68,68,0.08)'},
+                        {l:`${realVulns.filter((v:any)=>v.severity==='high').length} High`,c:'#f97316',bg:'rgba(249,115,22,0.08)'},
+                        {l:`${realVulns.length} Total Findings`,c:'#ff6b6b',bg:'rgba(255,68,68,0.06)'},
+                      ] : [
+                        {l:'5 Critical',c:'#ff4444',bg:'rgba(255,68,68,0.08)'},
+                        {l:'3 High',c:'#f97316',bg:'rgba(249,115,22,0.08)'},
+                      ]),
+                      {l:'Patches Ready',c:'#00ff88',bg:'rgba(0,255,136,0.08)'},
                     ].map((b,i)=>(
                       <div key={i} className="rep-badge" style={{color:b.c,background:b.bg,borderColor:b.c+'28'}}>
                         <div className="rep-bdot" style={{background:b.c}}/>
@@ -968,19 +1059,18 @@ export default function Dashboard() {
                   <div className="ov-grid">
                     <div className="ov-card">
                       <div className="ov-card-title">🎯 Security Score</div>
-                      <div className="score-ring"><div className="score-num">23</div><div className="score-den">/100</div></div>
-                      <div className="score-grade-txt">Grade F — CRITICAL</div>
-                      <div className="score-desc-txt">5 critical vulnerabilities. 8,400 students at risk. Immediate action required.</div>
+                      <div className="score-ring"><div className="score-num">{company.score}</div><div className="score-den">/100</div></div>
+                      <div className="score-grade-txt">Grade {company.grade} — {company.score < 35 ? 'CRITICAL' : company.score < 55 ? 'POOR' : company.score < 75 ? 'FAIR' : 'GOOD'}</div>
+                      <div className="score-desc-txt">{isRealScan ? `${realVulns.length} vulnerabilities found. ${realVulns.filter((v:any)=>v.severity==='critical').length} critical.` : '5 critical vulnerabilities. Immediate action required.'}</div>
                     </div>
                     <div className="ov-card">
                       <div className="ov-card-title">📁 Scan Details</div>
                       {[
-                        {l:'Repository',v:DEMO.repo,c:'#fff'},
+                        {l:'Repository',v:company.repo.replace('https://github.com/',''),c:'#fff'},
                         {l:'Branch',v:'main',c:'var(--green)'},
-                        {l:'Files Scanned',v:`${DEMO.scanned} / ${DEMO.files}`,c:'#fff'},
-                        {l:'Languages',v:'TypeScript 54%, JS 28%, Py 7%',c:'var(--muted)'},
-                        {l:'Scan Time',v:`${DEMO.duration}ms`,c:'var(--green)'},
-                        {l:'Rules Applied',v:'847 (FERPA + OWASP)',c:'var(--muted)'},
+                        {l:'Files Scanned',v:String(company.scanned || '—'),c:'var(--cyan)'},
+                        {l:'Languages',v:'Auto-detected',c:'var(--muted)'},
+                        {l:'Rules Applied',v:'OWASP Top 10 + CWE',c:'var(--muted)'},
                       ].map((r,i)=>(
                         <div key={i} className="ov-row">
                           <span className="ov-row-lbl">{r.l}</span>
@@ -990,13 +1080,13 @@ export default function Dashboard() {
                     </div>
                     <div className="ov-card">
                       <div className="ov-card-title">⚠️ Top Risks</div>
-                      {DEMO_VULNS.map((v,i)=>(
+                      {(isRealScan ? realVulns.slice(0,5).map((v:any) => ({...v, sev: v.severity})) : DEMO_VULNS).map((v:any,i:number)=>(
                         <div key={i} className="ov-row" style={{cursor:'pointer'}} onClick={()=>{setActiveTab('vulns');setOpenVuln(i)}}>
                           <div style={{display:'flex',alignItems:'center',gap:8}}>
-                            <div style={{width:6,height:6,borderRadius:'50%',background:sevColor[v.sev],flexShrink:0}}/>
+                            <div style={{width:6,height:6,borderRadius:'50%',background:sevColor[v.sev || v.severity],flexShrink:0}}/>
                             <span style={{fontSize:12,color:'#fff',fontWeight:600}}>{v.name}</span>
                           </div>
-                          <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:10,color:sevColor[v.sev],fontWeight:700}}>CVSS {v.cvss}</span>
+                          <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:10,color:sevColor[v.sev || v.severity],fontWeight:700}}>CVSS {v.cvss}</span>
                         </div>
                       ))}
                     </div>
@@ -1007,7 +1097,7 @@ export default function Dashboard() {
                     <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:10,fontWeight:700,color:'var(--green)',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:14}}>⚡ Explore Security Features</div>
                     <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}}>
                       {[
-                        {tab:'vulns',ico:'🐛',name:'Vulnerabilities',desc:'5 critical findings with details'},
+                        {tab:'vulns',ico:'🐛',name:'Vulnerabilities',desc:`${isRealScan ? realVulns.length : 5} findings with details`},
                         {tab:'patches',ico:'🔧',name:'AI Patches',desc:'Auto-generated secure fixes'},
                         {tab:'agent',ico:'⚡',name:'Agent Loop',desc:'8-step autonomous workflow'},
                         {tab:'redblue',ico:'⚔️',name:'Red vs Blue',desc:'Attack simulation & defense'},
@@ -1030,31 +1120,37 @@ export default function Dashboard() {
               {/* ── VULNERABILITIES ── */}
               {activeTab === 'vulns' && (
                 <div className="tab-content">
-                  {DEMO_VULNS.map((v,i)=>(
-                    <div key={i} className="vuln-card" style={{borderColor:sevColor[v.sev]+'22',animationDelay:`${i*0.06}s`}}>
-                      <div className="vuln-stripe" style={{background:`linear-gradient(to bottom,${sevColor[v.sev]},transparent)`}}/>
+                  {(isRealScan ? realVulns : DEMO_VULNS).map((v:any,i:number)=>{
+                    const sev = v.sev || v.severity || 'medium'
+                    const desc = v.what || v.description || ''
+                    const impactText = v.impact || ''
+                    const fixText = v.fix || ''
+                    const realInfo = v.real || ''
+                    return (
+                    <div key={i} className="vuln-card" style={{borderColor:sevColor[sev]+'22',animationDelay:`${i*0.06}s`}}>
+                      <div className="vuln-stripe" style={{background:`linear-gradient(to bottom,${sevColor[sev]},transparent)`}}/>
                       <div className="vuln-top-row" onClick={()=>setOpenVuln(openVuln===i?null:i)}>
                         <div>
                           <div className="vuln-badges">
-                            <span className="vuln-sev-tag" style={{background:sevColor[v.sev],color:'#fff'}}>{v.sev}</span>
-                            <span className="vuln-id">{v.id}</span>
-                            <span className="vuln-id">{v.cwe}</span>
-                            <span className="vuln-cvss" style={{color:sevColor[v.sev]}}>CVSS {v.cvss}</span>
+                            <span className="vuln-sev-tag" style={{background:sevColor[sev],color:'#fff'}}>{sev}</span>
+                            <span className="vuln-id">{v.id || `V-${String(i+1).padStart(3,'0')}`}</span>
+                            <span className="vuln-id">{v.cwe || ''}</span>
+                            <span className="vuln-cvss" style={{color:sevColor[sev]}}>CVSS {v.cvss}</span>
                           </div>
                           <h3 className="vuln-name">{v.name}</h3>
                         </div>
                         <span style={{fontSize:14,color:'var(--dim)',transform:openVuln===i?'rotate(90deg)':'none',transition:'transform 0.25s',flexShrink:0,marginTop:4}}>›</span>
                       </div>
                       <div className="vuln-file-row"><span>📄</span>{v.file}<span className="vuln-line">Line {v.line}</span></div>
-                      <div className="vuln-snippet">{v.snippet}</div>
-                      <p className="vuln-preview">{v.what.split('.')[0]}.</p>
+                      {v.snippet && <div className="vuln-snippet">{v.snippet}</div>}
+                      <p className="vuln-preview">{(desc).split('.')[0]}.</p>
                       <div className={`vuln-expand ${openVuln===i?'open':''}`}>
                         <div style={{borderTop:'1px solid rgba(255,255,255,0.05)',paddingTop:13,display:'flex',flexDirection:'column',gap:12}}>
                           {[
-                            {lbl:'🔍 What Is This?',col:'var(--muted)',text:v.what,bc:'rgba(255,255,255,0.06)',bg:'rgba(255,255,255,0.02)',tc:'rgba(255,255,255,0.68)'},
-                            {lbl:'💥 What Can an Attacker Do?',col:'#ff6b6b',text:v.impact,bc:'rgba(255,107,107,0.12)',bg:'rgba(255,59,59,0.04)',tc:'rgba(255,255,255,0.68)'},
-                            {lbl:'🔧 How To Fix It',col:'var(--green)',text:v.fix,bc:'rgba(0,255,136,0.12)',bg:'rgba(0,255,136,0.04)',tc:'#a7f3d0'},
-                            {lbl:'📰 Real-World Breach',col:'#fbbf24',text:v.real,bc:'rgba(251,191,36,0.12)',bg:'rgba(251,191,36,0.04)',tc:'#fde68a'},
+                            {lbl:'🔍 What Is This?',col:'var(--muted)',text:desc,bc:'rgba(255,255,255,0.06)',bg:'rgba(255,255,255,0.02)',tc:'rgba(255,255,255,0.68)'},
+                            ...(impactText ? [{lbl:'💥 Impact',col:'#ff6b6b',text:impactText,bc:'rgba(255,107,107,0.12)',bg:'rgba(255,59,59,0.04)',tc:'rgba(255,255,255,0.68)'}] : []),
+                            {lbl:'🔧 How To Fix It',col:'var(--green)',text:fixText,bc:'rgba(0,255,136,0.12)',bg:'rgba(0,255,136,0.04)',tc:'#a7f3d0'},
+                            ...(realInfo ? [{lbl:'📰 Real-World Breach',col:'#fbbf24',text:realInfo,bc:'rgba(251,191,36,0.12)',bg:'rgba(251,191,36,0.04)',tc:'#fde68a'}] : []),
                           ].map((s,j)=>(
                             <div key={j} className="vsec">
                               <div className="vsec-lbl" style={{color:s.col}}>{s.lbl}</div>
@@ -1062,14 +1158,14 @@ export default function Dashboard() {
                             </div>
                           ))}
                           <button style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(0,255,136,0.07)',border:'1px solid rgba(0,255,136,0.16)',color:'var(--green)',fontSize:11,fontWeight:700,padding:'5px 12px',borderRadius:6,cursor:'pointer',fontFamily:'JetBrains Mono,monospace',marginBottom:6}}
-                            onClick={()=>{navigator.clipboard.writeText(v.fix)}}>
+                            onClick={()=>{navigator.clipboard.writeText(fixText)}}>
                             📋 Copy Fix Instructions
                           </button>
                         </div>
                       </div>
                       {openVuln!==i && <button className="vuln-hint" onClick={()=>setOpenVuln(i)}>👁 Click to see full explanation, impact, fix, and real-world breach example</button>}
                     </div>
-                  ))}
+                  )})}
                 </div>
               )}
 
@@ -1077,9 +1173,9 @@ export default function Dashboard() {
               {activeTab === 'patches' && (
                 <div className="tab-content">
                   <div style={{background:'rgba(0,255,136,0.05)',border:'1px solid rgba(0,255,136,0.14)',borderRadius:10,padding:'11px 15px',fontFamily:'JetBrains Mono,monospace',fontSize:11,color:'var(--green)',marginBottom:4,display:'flex',alignItems:'center',gap:9}}>
-                    ✨ AI-generated patches for all 5 vulnerabilities — verified in sandbox. GitHub PR #47 ready to merge.
+                    ✨ AI-generated patches for {isRealScan ? realVulns.length : 5} vulnerabilities — verified and ready to apply.
                   </div>
-                  {DEMO_VULNS.map((v,i)=>(
+                  {(isRealScan ? realVulns : DEMO_VULNS).map((v:any,i:number)=>(
                     <div key={i} className="patch-block" style={{animationDelay:`${i*0.05}s`}}>
                       <div className="patch-block-hdr">
                         <span className="patch-block-name">{v.name}</span>
@@ -1089,11 +1185,11 @@ export default function Dashboard() {
                       <div className="patch-grid">
                         <div>
                           <div className="patch-side-hdr patch-bad-hdr"><span style={{width:7,height:7,borderRadius:'50%',background:'#ef4444'}}/>Vulnerable Code</div>
-                          <pre className="patch-pre patch-bad-pre">{v.before}</pre>
+                          <pre className="patch-pre patch-bad-pre">{v.before || v.snippet || 'See vulnerability details'}</pre>
                         </div>
                         <div>
                           <div className="patch-side-hdr patch-good-hdr"><span style={{width:7,height:7,borderRadius:'50%',background:'var(--green)',boxShadow:'0 0 6px var(--green)'}}/>AI-Fixed Code</div>
-                          <pre className="patch-pre patch-good-pre">{v.after}</pre>
+                          <pre className="patch-pre patch-good-pre">{v.after || v.fixedCode || v.fix || 'See fix instructions'}</pre>
                         </div>
                       </div>
                     </div>
