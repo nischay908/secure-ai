@@ -241,6 +241,7 @@ export default function LandingPage() {
           </div>
           <div className="lnav-btns">
             <button className="lnav-login" onClick={() => router.push('/login')}>Sign In</button>
+            <button className="lnav-login" onClick={() => router.push('/scan')}style={{borderColor:'rgba(0,255,136,0.3)',color:'#00ff88'}}>Live Demo</button>
             <button className="lnav-cta" onClick={() => router.push('/signup')}>Start Free Trial →</button>
           </div>
         </nav>
@@ -264,13 +265,16 @@ export default function LandingPage() {
             while you sleep.
           </p>
           <div className="hero-btns">
-            <button className="hero-btn-primary" onClick={() => router.push('/signup')}>
-              Start Free Trial — No Card Required
-            </button>
-            <button className="hero-btn-secondary" onClick={() => router.push('/login')}>
-              Sign In to Dashboard
-            </button>
-          </div>
+  <button className="hero-btn-primary" onClick={() => router.push('/scan')}>
+    🔍 Try Live Demo — Scan Any Repo
+  </button>
+  <button className="hero-btn-secondary" onClick={() => router.push('/signup')}>
+    Start Free Trial — No Card Required
+  </button>
+  <button className="hero-btn-secondary" onClick={() => router.push('/login')}>
+    Sign In to Dashboard
+  </button>
+</div>
 
           {/* Live demo window */}
           <div className="demo-window">
