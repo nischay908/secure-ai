@@ -442,10 +442,13 @@ export default function ScanPage() {
             <div className="hico">🛡</div>
             <span className="hname">Cyber<span style={{color:'#00ff88'}}>Sentry</span></span>
           </div>
-          <div className="hright">
-            {phase==='done'&&<span className="done-pill">✅ Scan Complete</span>}
-            <button className="hbtn" onClick={()=>router.push('/dashboard')}>📋 Dashboard</button>
-          </div>
+         <div className="hright">
+  {phase==='done'&&<span className="done-pill">✅ Scan Complete</span>}
+  <button style={{background:'linear-gradient(135deg,#ff9500,#ff6600)',color:'#000',border:'none',padding:'8px 18px',borderRadius:'10px',fontWeight:800,fontSize:'13px',cursor:'pointer',transition:'all 0.25s',fontFamily:"'Outfit',sans-serif",display:'flex',alignItems:'center',gap:'6px',boxShadow:'0 4px 16px rgba(255,149,0,0.3)'}} onClick={()=>{setMode('github');setRepoUrl('https://github.com/OWASP/NodeGoat');setTimeout(()=>runScan(),400)}} disabled={scanning}>
+    ⚡ Live Demo
+  </button>
+  <button className="hbtn" onClick={()=>router.push('/dashboard')}>📋 Dashboard</button>
+</div>
         </header>
 
         <div className="banner">
